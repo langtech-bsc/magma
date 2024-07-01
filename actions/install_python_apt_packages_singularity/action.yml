@@ -79,8 +79,9 @@ runs:
         ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} "
           if [ -d \"${{ inputs.dir }}/packages-${{ github.run_number }}\" ]; then
               module load singularity
-              singularity exec --contain -w --no-home ${{ inputs.dir }}/${{ inputs.sandbox }} /bin/bash -c 'mkdir -p /packages/requirements'
-              singularity exec -w --no-home --bind \"${{ inputs.dir }}/packages-${{ github.run_number }}\":/requirements ${{ inputs.dir }}/${{ inputs.sandbox }} /bin/bash -c  'pip install --force-reinstall /requirements/*.whl /requirements/*.tar.gz'
+              singularity exec --contain -w --no-home ${{ inputs.dir }}/${{ inputs.sandbox }} /bin/bash -c 'mkdir -p /requirements'
+              singularity exec -w --no-home --bind \"${{ inputs.dir }}/packages-${{ github.run_number }}\":/requirements ${{ inputs.dir }}/${{ inputs.sandbox }} /bin/bash -c  'export TMPDIR=/tmp && pip install --force-reinstall /requirements/*.whl /requirements/*.tar.gz'
           fi
           "
+        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} "cd ${{ inputs.dir }} && rm -rf packages-${{ github.run_number }}"
 
