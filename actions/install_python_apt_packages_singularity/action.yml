@@ -76,10 +76,11 @@ runs:
 
     - name: Install requirements in ${{ inputs.sandbox }}
       run: |
-        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }}"
+        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} "
           if [ -d \"${{ inputs.dir }}/packages-${{ github.run_number }}\" ]; then
               module load singularity
-              singularity exec --contain -w --no-home --bind \"${{ inputs.dir }}/packages-${{ github.run_number }}\":/packages ${{ inputs.dir }}/${{ inputs.sandbox }} pip install --force-reinstall /packages/*.whl /packages/*.tar.gz
+              singularity exec --contain -w --no-home ${{ inputs.dir }}/${{ inputs.sandbox }} /bin/bash -c 'mkdir -p /packages/requirements'
+              singularity exec -w --no-home --bind \"${{ inputs.dir }}/packages-${{ github.run_number }}\":/requirements ${{ inputs.dir }}/${{ inputs.sandbox }} /bin/bash -c  'pip install --force-reinstall /requirements/*.whl /requirements/*.tar.gz'
           fi
           "
 
