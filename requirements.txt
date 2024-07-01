@@ -1,6 +1,4 @@
-requests==2.25.1
 python-dotenv
-numpy
 pandas==1.3.3  # Es un comment
 scipy
 matplotlib==3.4.3

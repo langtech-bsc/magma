@@ -61,24 +61,25 @@ runs:
           fi
         "
       
-    - name: Download packages
-      run: |
-        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "module load singularity && singularity exec --contain -w --no-home  ${{ inputs.dir }}/${{ inputs.sandbox }} pip freeze" > freeze.txt
-        python ${{ github.action_path }}/get_packages_list.py --packages ./requirements.txt --installed ./freeze.txt > toinstall.txt
-        pip download -r toinstall.txt -d packages
-        rm  toinstall.txt freeze.txt
+    # - name: Download requirements
+    #   run: |
+    #     ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "module load singularity && singularity exec --contain -w --no-home  ${{ inputs.dir }}/${{ inputs.sandbox }} pip freeze" > freeze.txt
+    #     python ${{ github.action_path }}/get_packages_list.py --packages ./requirements.txt --installed ./freeze.txt > toinstall.txt
+    #     pip download -r toinstall.txt -d packages-${{ github.run_number }}
+    #     rm  toinstall.txt freeze.txt
         
 
-    - name: Push packages
-      run: |
-        tar czf - packages | ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "cd ${{ inputs.dir }} && tar xzvf - packages"
-        rm -rf packages
+    # - name: Push downloaded requirements
+    #   run: |
+    #     tar czf - packages-${{ github.run_number }} | ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "cd ${{ inputs.dir }} && tar xzvf - packages-${{ github.run_number }}"
+    #     rm -rf packages-${{ github.run_number }}
 
-    - name: Install packages
+    - name: Install requirements in ${{ inputs.sandbox }}
       run: |
-        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "
-            module load singularity
-            singularity exec --contain -w --no-home --bind ${{ inputs.dir }}/packages:packages ${{ inputs.dir }}/${{ inputs.sandbox }} pip \"exit 0\"
-        fi
-        "
+        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }}"
+          if [ -d \"${{ inputs.dir }}/packages-${{ github.run_number }}\" ]; then
+              module load singularity
+              singularity exec --contain -w --no-home --bind \"${{ inputs.dir }}/packages-${{ github.run_number }}\":/packages ${{ inputs.dir }}/${{ inputs.sandbox }} pip install --force-reinstall /packages/*.whl /packages/*.tar.gz
+          fi
+          "
 
