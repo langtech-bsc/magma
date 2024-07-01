@@ -32,13 +32,13 @@ runs:
 
     - name: Check connection
       shell: bash
-      if: ${{ inputs.overwrite == true || inputs.overwrite == 'true' }}
       run: |
         ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}} 2>/dev/null "exit"
         if [ $? -ne 0 ]; then
           echo 'SSH connection failed'
           exit 1
         fi
-
       
-    - name: 
+    - name: Install apt packages
+      run: |
+        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} "singularity exec ${{ inputs.sandbox }} /bin/bash -c \"dpkg -l | grep '^ii' | awk '{print \$2}' | cut -d: -f1 | xargs dpkg-query -W -f='\${Package}=\${Version}\\\n'\""
