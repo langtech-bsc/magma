@@ -24,6 +24,12 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - name: Set globals
+      id: globals
+      shell: bash
+      run: |
+        echo "SSH_OPTIONS=-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" >> "${GITHUB_OUTPUT}"
+
     - name: Log names
       shell: bash
       run: |
@@ -38,7 +44,41 @@ runs:
           echo 'SSH connection failed'
           exit 1
         fi
-      
-    - name: Install apt packages
+
+    - name: Check sandbox existence
+      shell: bash
       run: |
-        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} "singularity exec ${{ inputs.sandbox }} /bin/bash -c \"dpkg -l | grep '^ii' | awk '{print \$2}' | cut -d: -f1 | xargs dpkg-query -W -f='\${Package}=\${Version}\\\n'\""
+        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "
+          if [ -d \"${{ inputs.dir }}/${{ inputs.sandbox }}\" ]; then
+            module load singularity
+            if ! singularity inspect ${{ inputs.dir }}/${{ inputs.sandbox }} >/dev/null 2>&1; then
+              echo 'The directory is not a Singularity sandbox'
+              exit 1
+            fi
+          else
+            echo 'The sandbox directory does not exist'
+            exit 1
+          fi
+        "
+      
+    - name: Download packages
+      run: |
+        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "module load singularity && singularity exec --contain -w --no-home  ${{ inputs.dir }}/${{ inputs.sandbox }} pip freeze" > freeze.txt
+        python ${{ github.action_path }}/get_packages_list.py --packages ./requirements.txt --installed ./freeze.txt > toinstall.txt
+        pip download -r toinstall.txt -d packages
+        rm  toinstall.txt freeze.txt
+        
+
+    - name: Push packages
+      run: |
+        tar czf - packages | ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "cd ${{ inputs.dir }} && tar xzvf - packages"
+        rm -rf packages
+
+    - name: Install packages
+      run: |
+        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "
+            module load singularity
+            singularity exec --contain -w --no-home --bind ${{ inputs.dir }}/packages:packages ${{ inputs.dir }}/${{ inputs.sandbox }} pip \"exit 0\"
+        fi
+        "
+

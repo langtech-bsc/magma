@@ -46,3 +46,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+#command to get installed packages
+# \"dpkg -l | grep '^ii' | awk '{print \\$2}' | cut -d: -f1 | xargs dpkg-query -W -f='\\\${Package}=\\\${Version}\\\n'\""
