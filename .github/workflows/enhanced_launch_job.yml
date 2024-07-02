@@ -178,10 +178,10 @@ jobs:
         runs_on: ${{ inputs.runs_on }}
         job_path: ${{ needs.pre-job.outputs.job_path }}
         job_name: ${{ needs.pre-job.outputs.job_name }}
-        enable_tunnel: ${{ needs.pre-job.outputs.enable_tunnel }}
-        enable_jupyter: ${{ needs.pre-job.outputs.enable_jupyter }}
+        enable_tunnel: ${{ toJson(needs.pre-job.outputs.enable_tunnel) }}
+        enable_jupyter: ${{ toJson(needs.pre-job.outputs.enable_jupyter) }}
         jupyter_singularity: ${{ needs.pre-job.outputs.jupyter_singularity }}
-        enable_tgi: ${{ needs.pre-job.outputs.enable_tgi }}
+        enable_tgi: ${{ toJson(needs.pre-job.outputs.enable_tgi) }}
         tgi_singularity: ${{ needs.pre-job.outputs.tgi_singularity }}
         tgi_model: ${{ needs.pre-job.outputs.tgi_model }}
         tgi_params: ${{ needs.pre-job.outputs.tgi_params }}
