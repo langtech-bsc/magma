@@ -41,7 +41,7 @@ jobs:
           JOB_BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
           echo "job_name=${JOB_REPO_NAME}-${JOB_BRANCH}" >> $GITHUB_OUTPUT
           echo "repo_branch=${JOB_REPO_NAME}/${JOB_BRANCH}" >> $GITHUB_OUTPUT
-          echo "job_path=/gpfs/scratch/${{ secrets.REMOTE_GROUP }}/${{ secrets.REMOTE_USER }}/jobs/${JOB_REPO_NAME}/${JOB_BRANCH}" >> $GITHUB_OUTPUT
+          echo "job_path=${JOB_REPO_NAME}/${JOB_BRANCH}" >> $GITHUB_OUTPUT
           
       - uses: webfactory/ssh-agent@v0.9.0
         with:

@@ -112,11 +112,13 @@ jobs:
           fi
 
           if [ -z "${{ env.JOB_PATH }}" ]; then
-            JOB_PATH="/gpfs/scratch/${{ secrets.REMOTE_GROUP }}/${{ secrets.REMOTE_USER }}/jobs/${JOB_REPO_NAME}/${{ github.run_number }}"
+            JOB_PATH_TMP="/gpfs/scratch/${{ secrets.REMOTE_GROUP }}/${{ secrets.REMOTE_USER }}/jobs/${JOB_REPO_NAME}/${{ github.run_number }}"
+          else
+            JOB_PATH_TMP="/gpfs/scratch/${{ secrets.REMOTE_GROUP }}/${{ secrets.REMOTE_USER }}/jobs/${{env.JOB_PATH}}"
           fi
 
-          echo "JOB_PATH=$JOB_PATH" >> "$GITHUB_ENV"
-          echo "JOB_LOGS_PATH=$JOB_PATH/logs" >> "$GITHUB_ENV"
+          echo "JOB_PATH=$JOB_PATH_TMP" >> "$GITHUB_ENV"
+          echo "JOB_LOGS_PATH=$JOB_PATH_TMP/logs" >> "$GITHUB_ENV"
       
       - name: Log job variables (Job path, job name, etc)
         run: |
@@ -183,6 +185,7 @@ jobs:
         run: |
           #Launching job...
           tempfile=$(mktemp)
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "rm -f ${{ env.env.JOB_LOGS_PATH }}"
           hpc-rocket launch rocket.yml 2>&1 | tee "$tempfile"
           output=$(cat "$tempfile")
           echo "SLURM_JOB_ID=$(echo "$output" | grep -oE 'job [0-9]+' | grep -oE '[0-9]+')" >> "$GITHUB_ENV"
@@ -229,7 +232,7 @@ jobs:
               if [ '${{ env.JOB_ENABLE_TUNNEL }}' = 'true' ]; then
                 SLURM_JOB_NODE=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "squeue -j ${{ env.SLURM_JOB_ID }}  -o '%R'" | tail -1)
                 
-                if [[ $SLURM_JOB_NODE == *"["* ]]; then    
+                $(if [[ $SLURM_JOB_NODE == *"["* ]]; then    
                     IFS='[' read -r prefix range <<< "$SLURM_JOB_NODE"  # Split by '['
                     if [[ $range == *"-"* ]]; then                      # Handle range (contains '-')
                         IFS='-' read -r start end <<< "$range"
@@ -242,8 +245,10 @@ jobs:
                     start=${start%]*}                                   # Remove ']' from the start variable
                     result="${prefix}${start}"                          # Join prefix with start
                     SLURM_JOB_NODE=$result
-                fi
+                    echo "Job_ID: $result" 
+                fi) ${{ steps.mlflow.outputs.sync_dir }}/debug.log 2>&1
 
+                echo $SLURM_JOB_NODE > ${{ steps.mlflow.outputs.sync_dir }}/debug.log 2>&1
                 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "rm -rf ${{ env.EXTRA_SOCKET }} ${{ env.JUPYTER_SOCKET }}; ssh -Nf -L ${{ env.EXTRA_SOCKET }}:localhost:${{ env.PORT2 }} -L ${{ env.JUPYTER_SOCKET }}:localhost:${{ env.PORT1 }} ${SLURM_JOB_NODE} && chmod 660 -f ${{ env.EXTRA_SOCKET }} ${{ env.JUPYTER_SOCKET }} 123abc "
                 echo "${{ env.JOB_SSH_TUNNEL_COMMAND }}" > ${{ steps.mlflow.outputs.sync_dir }}/tunnel.log
               fi
