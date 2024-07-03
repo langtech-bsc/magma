@@ -231,6 +231,7 @@ jobs:
               echo "mlflow_pid=$!" >> $GITHUB_OUTPUT
               if [ '${{ env.JOB_ENABLE_TUNNEL }}' = 'true' ]; then
                 SLURM_JOB_NODE=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "squeue -j ${{ env.SLURM_JOB_ID }}  -o '%R'" | tail -1)
+                echo $SLURM_JOB_NODE > ${{ steps.mlflow.outputs.sync_dir }}/debug.log
                 
                 $(if [[ $SLURM_JOB_NODE == *"["* ]]; then    
                     IFS='[' read -r prefix range <<< "$SLURM_JOB_NODE"  # Split by '['
