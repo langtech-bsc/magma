@@ -1,0 +1,22 @@
+# To use singularity from other repository use singularity: <repo>/<branch>.
+# You can also use any images exising in $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH (e.g, python-jupyter.sif, text-generation-inference.singularity.1.4.4.sif)
+# Default: <current_repo>/<current_branch>.
+# On using default singularity image it will try to create, if not exists. 
+# Otherwise, will throw an error on invalid singularity image.
+
+tunnel:
+  enable: false # Default false. If tgi or jupyter is enable, always enable
+
+jupyter:
+  enable: true # Default false.
+  singularity: python-jupyter.sif                                   # The singularity image must exists in $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH.
+
+tgi: # Text generation infrence
+  enable: true # Default false.
+  singularity: text-generation-inference.singularity.1.4.4.sif # The singularity image must exists in $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH.
+  model: Mistral-7B-Instruct-v0.3 # The model must exists in $GPFS_MODEL_REGISTRY_PATH.
+  params: --max-input-length 8000 --max-batch-prefill-tokens 8000 --max-total-tokens 12000 # Must be valid parameters, otherwise tgi will throw error
+
+# Un comment to get access to custom image from $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH. Default: <current_repo>/<current_branch>.
+# You will have access to this image through $JOB_SINGULARITY_IMAGE. 
+# singularity: my-custom-image.sif

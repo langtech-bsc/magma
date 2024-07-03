@@ -8,6 +8,6 @@ singularity exec --nv --no-home \
     --bind /gpfs:/gpfs \
     --bind $JOB_PATH:/home/bsc/$USER \
     $BIND_WORKING_DIR \
-    $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH/python-jupyter.sif jupyter-lab \
+    $GPFS_JUPYTER_SINGULARITY jupyter-lab \
     --notebook-dir=/home/bsc/$USER \
-    --no-browser --ip=0.0.0.0 --port=8888 > $JOB_PATH/logs/jupyter.log 2>&1 &
+    --no-browser --ip=0.0.0.0 --port=8888 > $JOB_LOGS_PATH/jupyter.log 2>&1 &

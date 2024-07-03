@@ -1,12 +1,14 @@
-name: Test job enhanced launch job
-run-name: ${{ github.actor }} is executing Test job enhanced launch job 🚀
+name: Test workflow enhanced launch job
+run-name: ${{ github.actor }} is executing Test workflow enhanced launch job 🚀
 
 on:
   workflow_dispatch:
 
 jobs:
   test-workflow-job-enhanced-launch-job:
-    uses: langtech-bsc/magma/.github/workflows/enhanced_launch_job.yml@main
+    uses: ./.github/workflows/enhanced_launch_job.yml
     secrets: inherit
+    with:
+      local-repo: true
 
       

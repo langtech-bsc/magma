@@ -1,0 +1,16 @@
+tunnel: #SSH Tunnel
+  enable: false # Default false. If tgi or jupyter is enable, always enabled
+
+jupyter:
+  enable: true # Default false.
+  singularity: python-jupyter.sif                                   # The singularity image must exists in $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH.
+
+tgi: # Text generation inference
+  enable: true # Default false.
+  singularity: text-generation-inference.singularity.1.4.4.sif # The singularity image must exists in $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH.
+  model: Mistral-7B-Instruct-v0.3 # The model must exists in $GPFS_MODEL_REGISTRY_PATH.
+  params: --max-input-length 8000 --max-batch-prefill-tokens 8000 --max-total-tokens 12000 # Must be valid parameters, otherwise tgi will throw an error
+
+# Uncomment to get access to custom image from $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH.
+# You will have access to this image through $JOB_SINGULARITY_IMAGE env variable. 
+# singularity: my-custom-image.sif

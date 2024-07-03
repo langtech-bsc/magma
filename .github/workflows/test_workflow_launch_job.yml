@@ -1,0 +1,10 @@
+name: Test workflow launch job
+run-name: ${{ github.actor }} is executing Test workflow launch job 🚀
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-workflow-job-launch-job:
+    uses: ./.github/workflows/launch_job.yml
+    secrets: inherit
