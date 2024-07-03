@@ -249,7 +249,6 @@ jobs:
                     echo "Job_ID: $result" 
                 fi) ${{ steps.mlflow.outputs.sync_dir }}/debug.log 2>&1
 
-                echo $SLURM_JOB_NODE > ${{ steps.mlflow.outputs.sync_dir }}/debug.log 2>&1
                 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "rm -rf ${{ env.EXTRA_SOCKET }} ${{ env.JUPYTER_SOCKET }}; ssh -Nf -L ${{ env.EXTRA_SOCKET }}:localhost:${{ env.PORT2 }} -L ${{ env.JUPYTER_SOCKET }}:localhost:${{ env.PORT1 }} ${SLURM_JOB_NODE} && chmod 660 -f ${{ env.EXTRA_SOCKET }} ${{ env.JUPYTER_SOCKET }} 123abc "
                 echo "${{ env.JOB_SSH_TUNNEL_COMMAND }}" > ${{ steps.mlflow.outputs.sync_dir }}/tunnel.log
               fi

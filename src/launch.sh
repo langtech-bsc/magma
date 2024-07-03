@@ -6,8 +6,10 @@
 #SBATCH --gres=gpu:1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=20
-#SBATCH --qos=acc_bscls
+#SBATCH --qos=acc_debug
 #SBATCH --partition=acc
+#SBATCH --nodes=1
+#SBATCH --exclusive
 
 # Use $JOB_LOGS_PATH save logs
 echo "Launch python script"
