@@ -19,9 +19,9 @@ on:
         default: ''
 
       singularity:
-          required: false
-          type: string
-          default: 'python-jupyter.sif'
+        required: false
+        type: string
+        default: 'python-jupyter.sif'
 
       enable_tunnel:
         required: false
@@ -57,6 +57,17 @@ on:
         required: false
         type: string
         default: ''
+
+      remote_job:
+        required: false
+        type: string
+        default: 'NONE'
+
+      remote_job_sandbox:
+        required: false
+        type: boolean
+        default: false
+
       
 
 jobs:
@@ -89,7 +100,11 @@ jobs:
           must_exist: 'MLFLOW_TRACKING_SERVER_URL,GPFS_SINGULARITY_IMAGE_REGISTRY_PATH,GPFS_MODELS_REGISTRY_PATH'
           json: ${{ toJson(vars) }}
           name: 'secret'
-   
+
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+  
       - name: Set extra variables to env
         run: |
           JOB_REPO_NAME=${GITHUB_REPOSITORY#$GITHUB_REPOSITORY_OWNER/}
@@ -98,10 +113,15 @@ jobs:
           echo "JOB_REPO_NAME=${JOB_REPO_NAME}" >> "$GITHUB_ENV"
           echo "JOB_BRANCH=${JOB_BRANCH}" >> "$GITHUB_ENV"
           
+          echo "Debug: ${{ env.JOB_ENABLE_JUPYTER }}"
+          echo "Debug: ${{ env.JOB_TGI_ENABLE }}"
           if [ '${{ env.JOB_ENABLE_JUPYTER }}' = 'true' ] || [ '${{ env.JOB_TGI_ENABLE }}' = 'true' ]; then
             echo "JOB_ENABLE_TUNNEL=true" >> "$GITHUB_ENV"
             echo "JOB_SLEEP=true" >> "$GITHUB_ENV"
+            echo "entra aqui"
           fi
+          echo "no entra aqui"
+          exit 1
 
           if [ -z "${{ env.JOB_NAME }}" ]; then 
             echo "JOB_NAME=${JOB_REPO_NAME}-${{ github.run_number }}" >> "$GITHUB_ENV"
@@ -134,6 +154,7 @@ jobs:
           echo "GPFS_TGI_SINGULARITY: ${{env.GPFS_TGI_SINGULARITY}}"
           echo "GPFS_TGI_MODEL: ${{env.GPFS_TGI_MODEL}}"
           echo "JOB_SLEEP: ${{env.JOB_SLEEP}}"
+          echo "REMOTE_JOB: ${{inputs.remote_job}}"
 
       - name: Set Socket variables
         if: ${{ env.JOB_ENABLE_TUNNEL == 'true' || env.JOB_ENABLE_TUNNEL == true}}
@@ -144,6 +165,18 @@ jobs:
           echo "JUPYTER_SOCKET=${JUPYTER_SOCKET}" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@v4
+
+      - uses: ./actions/remote_job
+        if: ${{ contains(fromJson('["install", "build"]'), inputs.remote_job) }}
+        with:
+          job: ${{inputs.remote_job}}
+          remote_singularity_registry_path: ${{env.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH}}
+          image_name: ${{ inputs.singularity }}
+          sandbox: ${{inputs.remote_job_sandbox}}
+          remote_path: ${{env.JOB_PATH}}
+          remote_user: ${{secrets.REMOTE_USER}}
+          remote_host: ${{secrets.REMOTE_HOST}}
+          local_dir: 'src'
 
       - name: Save job related env vars to file
         run: |
@@ -171,9 +204,6 @@ jobs:
       #     python-version: '3.12'
       #     architecture: 'x64'
 
-      - uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       # - name: Display Python version
       #   run: python -c "import sys; print(sys.version)"

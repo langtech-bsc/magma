@@ -18,7 +18,7 @@ module load singularity
 mkdir -p $PATH
 
 if [ $SANDBOX ]; then
-    singularity build $PATH/$NAME.sif docker-archive:$DOCKER_TAR_PATH
+    singularity build $PATH/$NAME docker-archive:$DOCKER_TAR_PATH
 else
     singularity build -s $PATH/$NAME docker-archive:$DOCKER_TAR_PATH
 fi

@@ -1,0 +1,39 @@
+name: Test workflow docker2tar
+run-name: ${{ github.actor }} is executing Test workflow docker2tar 🚀
+
+on:
+  workflow_dispatch:
+
+
+
+jobs:
+  pre-job:
+    uses: ./.github/workflows/pre_job_per_branch.yml
+    secrets: inherit
+
+  
+  docker2tar:
+    needs:  pre-job
+    uses: ./.github/workflows/docker2tar.yml
+    secrets: inherit
+    with:
+      image_name: ${{needs.pre-job.outputs.branch}}
+      path: ${{ needs.pre-job.outputs.job_path }}/singularity
+
+  test-build:
+    needs:  [pre-job]
+    uses: ./.github/workflows/launch_job.yml
+    secrets: inherit
+    with:
+      job_path: ${{ needs.pre-job.outputs.job_path }}/test_singularity
+      job_name: ${{ needs.pre-job.outputs.job_name }}
+      singularity: ${{ needs.pre-job.outputs.singularity }}.sif
+      remote_job: "build"
+      remote_job_sandbox: false
+
+  complete:
+    needs: [pre-job, test-build]
+    runs-on: magma-runner-set
+    steps:
+      - run: |
+          echo "Test completed successfully"

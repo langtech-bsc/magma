@@ -11,18 +11,18 @@
 
 PATH=$REMOTE_JOB_PATH
 NAME=$REMOTE_JOB_NAME
-SANDBOX=$REMOTE_JOB_SANDBOX
 REQUIREMENTS_PATH=$REMOTE_JOB_REQUIREMENTS_PATH
+SANDBOX=false
 
 TMP_NAME=$NAME
 
 module load singularity
 mkdir -p $PATH
 
-if [ -z $SANDBOX ]; then
+if [ -f $PATH/$NAME ]; then
+    SANDBOX=true
     TMP_NAME=${NAME}_sandbox
     sudo singularity build --sandbox $TMP_NAME $NAME
-
 fi
 
 singularity exec --contain -w --no-home $PATH/$TMP_NAME /bin/bash -c 'mkdir -p /requirements'
@@ -30,5 +30,5 @@ singularity exec -w --no-home --bind $REQUIREMENTS_PATH:/requirements $PATH/$TMP
 
 if [ -z $SANDBOX ]; then
     sudo singularity build --force $NAME $TMP_NAME
-    rm -f $TMP_NAME
+    rm -rf $TMP_NAME
 fi

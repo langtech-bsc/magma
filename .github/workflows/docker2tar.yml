@@ -1,0 +1,32 @@
+name: Build docker to .tar
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        required: false
+        type: string
+        default: shell    
+      image_name:
+        required: true
+        type: string
+      path:
+        required: true
+        type: string
+
+jobs:
+  docker2trar:
+    timeout-minutes: 43200
+    runs-on: ${{ inputs.runs_on }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./actions/remote_job
+        with:
+          job: 'docker2tar'
+          remote_singularity_registry_path: ${{ vars.remote_singularity_registry_path }}
+          image_name: ${{ inputs.image_name }}
+          remote_path: /gpfs/scratch/${{ secrets.REMOTE_GROUP }}/${{ secrets.REMOTE_USER }}/jobs/${{ inputs.path }}
+          remote_user: ${{ secrets.REMOTE_USER}}
+          remote_host: ${{ secrets.REMOTE_HOST }}
+          ssh_secret_key: ${{ secrets.SSH_PRIVATE_KEY }}
+

@@ -1,0 +1,218 @@
+name: Enhanced Launch job
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        required: false
+        type: string
+        default: magma-runner-set
+      check_running_job:
+        required: false
+        type: boolean
+        default: false
+
+    outputs:
+      job_name:
+        value: ${{jobs.pre-job-pre-branch.outputs.job_name}}
+      repo_branch:
+        value: ${{jobs.pre-job-pre-branch.outputs.repo_branch}}
+      branch:
+        value: ${{jobs.pre-job-pre-branch.outputs.branch}}
+      job_path:
+        value: ${{jobs.pre-job-pre-branch.outputs.job_path}}
+      exists:
+        value: ${{jobs.pre-job-pre-branch.outputs.exists}}
+      enable_tunnel:
+        value: ${{jobs.pre-job-pre-branch.outputs.enable_tunnel}}
+      enable_jupyter:
+        value: ${{jobs.pre-job-pre-branch.outputs.enable_jupyter}}
+      jupyter_singularity:
+        value: ${{jobs.pre-job-pre-branch.outputs.jupyter_singularity}}
+      enable_tgi:
+        value: ${{jobs.pre-job-pre-branch.outputs.enable_tgi}}
+      tgi_singularity:
+        value: ${{jobs.pre-job-pre-branch.outputs.tgi_singularity}}
+      tgi_model:
+        value: ${{jobs.pre-job-pre-branch.outputs.tgi_model}}
+      tgi_params:
+        value: ${{jobs.pre-job-pre-branch.outputs.tgi_params}}
+      enable_singularity:
+        value: ${{jobs.pre-job-pre-branch.outputs.enable_singularity}}
+      sandbox:
+        value: ${{jobs.pre-job-pre-branch.outputs.sandbox}}
+      default_singularity:
+        value: ${{jobs.pre-job-pre-branch.outputs.default_singularity}}
+      singularity:
+        value: ${{jobs.pre-job-pre-branch.outputs.singularity}}
+
+jobs:
+  pre-job-pre-branch:
+      runs-on: ${{inputs.runs_on}}
+      outputs:
+        job_name: ${{ steps.job_variables.outputs.job_name }}
+        repo_branch: ${{ steps.job_variables.outputs.repo_branch }}
+        branch: ${{ steps.job_variables.outputs.branch }}
+        job_path: ${{ steps.job_variables.outputs.job_path }}
+        exists: ${{ steps.exists.outputs.exists }}
+
+        enable_tunnel: ${{ steps.set_defaults.outputs.enable_tunnel }}
+        enable_jupyter: ${{ steps.set_defaults.outputs.enable_jupyter }}
+        jupyter_singularity: ${{ steps.set_defaults.outputs.jupyter_singularity }}
+        enable_tgi: ${{ steps.set_defaults.outputs.enable_tgi }}
+        tgi_singularity: ${{ steps.set_defaults.outputs.tgi_singularity }}
+        tgi_model: ${{ steps.set_defaults.outputs.tgi_model }}
+        tgi_params: ${{ steps.set_defaults.outputs.tgi_params }}
+        enable_singularity: ${{ steps.set_defaults.outputs.enable_singularity}}
+        sandbox: ${{ steps.set_defaults.outputs.sandbox}}
+        default_singularity: ${{ steps.set_defaults.outputs.default_singularity}}
+        singularity: ${{ steps.set_defaults.outputs.singularity}}
+
+      steps:
+
+      - name: Get job variables
+        id: job_variables
+        run: |
+          JOB_REPO_NAME=${GITHUB_REPOSITORY#$GITHUB_REPOSITORY_OWNER/}
+          JOB_BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+
+          echo "repo_branch=${JOB_REPO_NAME}/${JOB_BRANCH}" >> $GITHUB_OUTPUT
+          echo "branch=${JOB_BRANCH}" >> $GITHUB_OUTPUT
+          echo "job_name=${JOB_REPO_NAME}-${JOB_BRANCH}" >> $GITHUB_OUTPUT
+          echo "job_path=${JOB_REPO_NAME}/${JOB_BRANCH}" >> $GITHUB_OUTPUT
+
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: check if job exists
+        id: check_job
+        if: ${{ inputs.check_running_job == true || inputs.check_running_job == 'true'}}
+        uses: langtech-bsc/magma/actions/check-hpc-jobs@main
+        with:
+          job_name: ${{ steps.job_variables.outputs.job_name}}
+          remote_user: ${{ secrets.REMOTE_USER}}
+          remote_host: ${{ secrets.REMOTE_HOST}}
+
+      - name: Job already exists
+        if: ${{ steps.check_job.outputs.exists == 'true'}}
+        id: exists
+        run: |
+            echo "The job is already running. Please note the limitation of one job per repository/branch. To proceed, you can either create another branch, cancel the current job, or wait for the job to finish."
+            echo "Job already exists"
+            echo "JOB IDs: ${{steps.check_job.outputs.jobs}}"
+            echo "exists=true" >> $GITHUB_OUTPUT
+            exit 1
+
+      - uses: actions/checkout@v4
+
+      - uses: actions-tools/yaml-outputs@8a3d95c649e970fbe0fb68b11e21a64a9b7bb1b0
+        id: yaml
+        with:
+          export-env-variables: false
+          file-path: './config.yml'
+          fail-on-file-not-found: false
+          separator: '_'
+        continue-on-error: true
+
+      - name: Set default values if not set
+        id: set_defaults
+        env:
+          DEFAULT_ENABLE_TUNNEL: "false"
+          DEFAULT_ENABLE_JUPYTER: "false"
+          DEFAULT_JUPYTER_SINGULARITY: "python-jupyter.sif"
+          DEFAULT_ENABLE_TGI: "false"
+          DEFAULT_TGI_SINGULARITY: "text-generation-inference.singularity.1.4.4.sif"
+          DEFAULT_TGI_MODEL: "Mixtral-8x7B-Instruct-v0.1"
+          CURRENT_REPO_BRANCH: "${{ steps.job_variables.outputs.repo_branch }}"
+
+        run: |
+          
+          # Set default for tunnel.enable
+          if [ -z "${{ steps.yaml.outputs.tunnel_enable }}" ]; then
+            echo "enable_tunnel=${{ env.DEFAULT_ENABLE_TUNNEL }}" >> $GITHUB_OUTPUT
+          else
+            echo "enable_tunnel=${{ steps.yaml.outputs.tunnel_enable }}" >> $GITHUB_OUTPUT
+          fi
+
+          # Set default for jupyter.enable
+          if [ -z "${{ steps.yaml.outputs.jupyter_enable }}" ]; then
+            echo "enable_jupyter=${{ env.DEFAULT_ENABLE_JUPYTER }}" >> $GITHUB_OUTPUT
+          else
+            echo "enable_jupyter=${{ steps.yaml.outputs.jupyter_enable }}" >> $GITHUB_OUTPUT
+          fi
+
+          # Set default for jupyter.singularity
+          if [ -z "${{ steps.yaml.outputs.jupyter_singularity }}" ]; then
+            echo "jupyter_singularity=${{ env.DEFAULT_JUPYTER_SINGULARITY }}" >> $GITHUB_OUTPUT
+          else
+            echo "jupyter_singularity=${{ steps.yaml.outputs.jupyter_singularity }}" >> $GITHUB_OUTPUT
+          fi
+
+          # Set default for tgi.enable
+          if [ -z "${{ steps.yaml.outputs.tgi_enable }}" ]; then
+            echo "enable_tgi=${{ env.DEFAULT_ENABLE_TGI }}" >> $GITHUB_OUTPUT
+          else
+            echo "enable_tgi=${{ steps.yaml.outputs.tgi_enable }}" >> $GITHUB_OUTPUT
+          fi
+
+          # Set default for tgi.singularity
+          if [ -z "${{ steps.yaml.outputs.tgi_singularity }}" ]; then
+            echo "tgi_singularity=${{ env.DEFAULT_TGI_SINGULARITY }}" >> $GITHUB_OUTPUT
+          else
+            echo "tgi_singularity=${{ steps.yaml.outputs.tgi_singularity }}" >> $GITHUB_OUTPUT
+          fi
+
+          # Set default for tgi.model
+          if [ -z "${{ steps.yaml.outputs.tgi_model }}" ]; then
+            echo "tgi_model=${{ env.DEFAULT_TGI_MODEL }}" >> $GITHUB_OUTPUT
+          else
+            echo "tgi_model=${{ steps.yaml.outputs.tgi_model }}" >> $GITHUB_OUTPUT
+          fi
+
+          # Set default for singularity
+          if [ ${{ steps.yaml.outputs.singularity_enable }} = "true" ]; then
+            echo "enable_singularity=true" >> $GITHUB_OUTPUT
+            
+            if [ -z "${{ steps.yaml.outputs.singularity_name }}" ]; then
+              SINGULARITY=${{ env.CURRENT_REPO_BRANCH }}
+
+            else
+              SINGULARITY=${{ steps.yaml.outputs.singularity_name }}
+            fi
+
+            if [ "${{ steps.yaml.outputs.singularity_sandbox }}" = "true" ]; then
+                echo "sandbox=true" >> $GITHUB_OUTPUT
+                SIF=".sif"
+              else
+                echo "sandbox=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+          
+          if [ "$SINGULARITY" = "${{env.CURRENT_REPO_BRANCH}}" ]; then
+            echo "default_singularity=true" >> $GITHUB_OUTPUT
+          else
+            echo "default_singularity=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "singularity=${SINGULARITY}${SIF}" >> $GITHUB_OUTPUT
+          # Set tgi params
+          echo "tgi_params=${{ steps.yaml.outputs.tgi_params }}" >> $GITHUB_OUTPUT
+ 
+
+      - name: Output configuration
+        run: |
+          echo "job_name: ${{ steps.job_variables.outputs.job_name }}"
+          echo "repo_branch: ${{ steps.job_variables.outputs.repo_branch }}"
+          echo "branch: ${{ steps.job_variables.outputs.branch }}"
+          echo "job_path: ${{ steps.job_variables.outputs.job_path }}"
+          echo ""
+          echo "enable_tunnel: ${{ steps.set_defaults.outputs.enable_tunnel }}"
+          echo "enable_jupyter: ${{ steps.set_defaults.outputs.enable_jupyter }}"
+          echo "jupyter_singularity: ${{ steps.set_defaults.outputs.jupyter_singularity }}"
+          echo "enable_tgi: ${{ steps.set_defaults.outputs.enable_tgi }}"
+          echo "tgi_singularity: ${{ steps.set_defaults.outputs.tgi_singularity }}"
+          echo "tgi_model: ${{ steps.set_defaults.outputs.tgi_model }}"
+          echo "tgi_params: ${{ steps.set_defaults.outputs.tgi_params }}"
+          echo "singularity: ${{ steps.set_defaults.outputs.singularity }}"
+          # echo "default_singularity: ${{ steps.default_singularity.outputs.default_singularity }}"
