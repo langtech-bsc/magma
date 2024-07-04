@@ -113,15 +113,10 @@ jobs:
           echo "JOB_REPO_NAME=${JOB_REPO_NAME}" >> "$GITHUB_ENV"
           echo "JOB_BRANCH=${JOB_BRANCH}" >> "$GITHUB_ENV"
           
-          echo "Debug: ${{ env.JOB_ENABLE_JUPYTER }}"
-          echo "Debug: ${{ env.JOB_TGI_ENABLE }}"
           if [ '${{ env.JOB_ENABLE_JUPYTER }}' = 'true' ] || [ '${{ env.JOB_TGI_ENABLE }}' = 'true' ]; then
             echo "JOB_ENABLE_TUNNEL=true" >> "$GITHUB_ENV"
             echo "JOB_SLEEP=true" >> "$GITHUB_ENV"
-            echo "entra aqui"
           fi
-          echo "no entra aqui"
-          exit 1
 
           if [ -z "${{ env.JOB_NAME }}" ]; then 
             echo "JOB_NAME=${JOB_REPO_NAME}-${{ github.run_number }}" >> "$GITHUB_ENV"
@@ -167,11 +162,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: ./actions/remote_job
-        if: ${{ contains(fromJson('["install", "build"]'), inputs.remote_job) }}
+        if: ${{ contains(fromJson('["install", "build", "ldconfig"]'), inputs.remote_job) }}
         with:
           job: ${{inputs.remote_job}}
           remote_singularity_registry_path: ${{env.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH}}
-          image_name: ${{ inputs.singularity }}
+          image: ${{ inputs.singularity }}
           sandbox: ${{inputs.remote_job_sandbox}}
           remote_path: ${{env.JOB_PATH}}
           remote_user: ${{secrets.REMOTE_USER}}

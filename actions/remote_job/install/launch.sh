@@ -7,28 +7,37 @@
 #SBATCH --cpus-per-task=20
 #SBATCH --qos=gp_bscls
 #SBATCH --partition=gpp
-#SBATCH --node=1
+#SBATCH --nodes=1
 
-PATH=$REMOTE_JOB_PATH
-NAME=$REMOTE_JOB_NAME
+source $JOB_PATH/remote_job.env
+module load singularity
+
+IMAGES_PATH=$REMOTE_JOB_PATH
+IMAGE=$REMOTE_JOB_IMAGE
 REQUIREMENTS_PATH=$REMOTE_JOB_REQUIREMENTS_PATH
 SANDBOX=false
 
-TMP_NAME=$NAME
+mkdir -p $IMAGES_PATH
 
-module load singularity
-mkdir -p $PATH
-
-if [ -f $PATH/$NAME ]; then
+TMP_NAME=$IMAGE
+if [ -f $IMAGES_PATH/$IMAGE ]; then
     SANDBOX=true
-    TMP_NAME=${NAME}_sandbox
-    sudo singularity build --sandbox $TMP_NAME $NAME
+    TMP_NAME=${IMAGE}_sandbox
+    sudo singularity build --sandbox $TMP_NAME $IMAGE
 fi
 
-singularity exec --contain -w --no-home $PATH/$TMP_NAME /bin/bash -c 'mkdir -p /requirements'
-singularity exec -w --no-home --bind $REQUIREMENTS_PATH:/requirements $PATH/$TMP_NAME /bin/bash -c  'export TMPDIR=/tmp && pip install --force-reinstall /requirements/*.whl /requirements/*.tar.gz'
+echo "IMAGES_PATH: $IMAGES_PATH"
+echo "IMAGE: $IMAGE"
+echo "REQUIREMENTS_PATH: $REQUIREMENTS_PATH"
+echo "SANDBOX: $SANDBOX"
+echo "TMP_NAME: $TMP_NAME"
+
+singularity exec --contain -w --no-home $IMAGES_PATH/$TMP_NAME /bin/sh -c 'mkdir -p /requirements'
+singularity exec -w --contain --no-home --bind $REQUIREMENTS_PATH/requirements:/requirements $IMAGES_PATH/$TMP_NAME /bin/sh -c  'export TMPDIR=/tmp && pip install --force-reinstall /requirements/*'
 
 if [ -z $SANDBOX ]; then
-    sudo singularity build --force $NAME $TMP_NAME
+    sudo singularity build --force $IMAGE $TMP_NAME
     rm -rf $TMP_NAME
 fi
+
+rm -r $REQUIREMENTS_PATH/requirements

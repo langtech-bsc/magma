@@ -12,27 +12,38 @@ jobs:
     secrets: inherit
 
   
-  docker2tar:
-    needs:  pre-job
-    uses: ./.github/workflows/docker2tar.yml
-    secrets: inherit
-    with:
-      image_name: ${{needs.pre-job.outputs.branch}}
-      path: ${{ needs.pre-job.outputs.job_path }}/singularity
+  # docker2tar:
+  #   needs:  pre-job
+  #   uses: ./.github/workflows/docker2tar.yml
+  #   secrets: inherit
+  #   with:
+  #     image: ${{needs.pre-job.outputs.singularity}}
+  #     path: ${{ needs.pre-job.outputs.job_path }}/test_singularity
 
-  test-build:
+  # test-build:
+  #   needs:  [pre-job, docker2tar]
+  #   uses: ./.github/workflows/launch_job.yml
+  #   secrets: inherit
+  #   with:
+  #     job_path: ${{ needs.pre-job.outputs.job_path }}/test_singularity
+  #     job_name: ${{ needs.pre-job.outputs.job_name }}
+  #     singularity: ${{ needs.pre-job.outputs.singularity }}
+  #     remote_job: "build"
+  #     remote_job_sandbox: false
+
+  test-install:
     needs:  [pre-job]
     uses: ./.github/workflows/launch_job.yml
     secrets: inherit
     with:
       job_path: ${{ needs.pre-job.outputs.job_path }}/test_singularity
       job_name: ${{ needs.pre-job.outputs.job_name }}
-      singularity: ${{ needs.pre-job.outputs.singularity }}.sif
-      remote_job: "build"
+      singularity: ${{ needs.pre-job.outputs.singularity }}
+      remote_job: "install"
       remote_job_sandbox: false
 
   complete:
-    needs: [pre-job, test-build]
+    needs: [pre-job, test-install]
     runs-on: magma-runner-set
     steps:
       - run: |

@@ -13,7 +13,7 @@ inputs:
     required: false
     default: false
 
-  image_name:
+  image:
     description: "Name of the image" # <branch_name>, signularity_image_name.
     required: true
 
@@ -57,7 +57,7 @@ runs:
       run: |
         echo "job: ${{inputs.job}}"
         echo "sandbox: ${{inputs.sandbox}}"
-        echo "image_name: ${{inputs.image_name}}"
+        echo "image: ${{inputs.image}}"
         echo "remote_singularity_registry_path: ${{inputs.remote_singularity_registry_path}}"
         echo "remote_path: ${{inputs.remote_path}}"
 
@@ -66,20 +66,20 @@ runs:
         echo "ENV_PREFIX=REMOTE_JOB" >> "${GITHUB_OUTPUT}"
 
     - name: Check job
-      if: ${{ !contains(fromJson('["install", "build", "docker2tar"]'), inputs.job) }}
+      if: ${{ !contains(fromJson('["install", "build", "docker2tar", "ldconfig"]'), inputs.job) }}
       shell: bash
       run: |
-        echo 'Job must be one of ["install", "build", "docker2tar"]'
+        echo 'Job must be one of ["install", "build", "docker2tar", "ldconfig"]'
         exit 1
 
-    - name: Pre steps on ["install", "build"]
+    - name: Pre steps on ["install", "build", "ldconfig"]
       if: ${{ contains(fromJson('["install", "build"]'), inputs.job )}}
       shell: bash
       run: |
         rm -rf ${{ inputs.local_dir }}
-        mkdir -p ${{ inputs.local_dir }}/${{inputs.job}}
-        cp -r ${{ github.action_path }}/${{inputs.job}}/* ${{ inputs.local_dir }}
-        echo "${{ steps.globals.outputs.ENV_PREFIX }}_NAME=${{inputs.image_name}}" >> "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
+        mkdir -p ${{ inputs.local_dir }}
+        cp ${{ github.action_path }}/${{inputs.job}}/* ${{ inputs.local_dir }}/.
+        echo "${{ steps.globals.outputs.ENV_PREFIX }}_IMAGE=${{inputs.image}}" > "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
 
     - name: On build
       if: ${{ contains(fromJson('["build"]'), inputs.job )}}
@@ -90,8 +90,9 @@ runs:
           exit 1
         fi
 
-        echo "${{ steps.globals.outputs.ENV_PREFIX }}_PATH=${{inputs.remote_singularity_registry_path}}" > "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
+        echo "${{ steps.globals.outputs.ENV_PREFIX }}_PATH=${{inputs.remote_singularity_registry_path}}" >> "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
         echo "${{ steps.globals.outputs.ENV_PREFIX }}_DOCKER_TAR_PATH=${{inputs.remote_path}}" >> "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
+        echo "${{ steps.globals.outputs.ENV_PREFIX }}_SANDBOX=${{inputs.sandbox}}" >> "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
 
     - name: On install
       if: ${{ contains(fromJson('["install"]'), inputs.job )}}
@@ -102,9 +103,8 @@ runs:
           exit 1
         fi
 
-        echo "${{ steps.globals.outputs.ENV_PREFIX }}_PATH=${{inputs.remote_singularity_registry_path}}" > "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
+        echo "${{ steps.globals.outputs.ENV_PREFIX }}_PATH=${{inputs.remote_singularity_registry_path}}" >> "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
         echo "${{ steps.globals.outputs.ENV_PREFIX }}_REQUIREMENTS_PATH=${{inputs.remote_path}}" >> "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
-        echo "${{ steps.globals.outputs.ENV_PREFIX }}_SANDBOX=${{inputs.sandbox}}" >> "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
 
 
     - name: Install and push requirements
@@ -112,9 +112,9 @@ runs:
       shell: bash
       run: |
         ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "
-          if [ -d \"${{ inputs.remote_singularity_registry_path }}/${{ inputs.image_name }}\" ]; then
+          if [ -d \"${{ inputs.remote_singularity_registry_path }}/${{ inputs.image }}\" ]; then
             module load singularity
-            if ! singularity inspect ${{ inputs.remote_singularity_registry_path }}/${{ inputs.image_name }} >/dev/null 2>&1; then
+            if ! singularity inspect ${{ inputs.remote_singularity_registry_path }}/${{ inputs.image }} >/dev/null 2>&1; then
               echo 'The directory is not a Singularity sandbox'
               exit 1
             fi
@@ -125,35 +125,29 @@ runs:
         "
 
         
-        mkdir job_tmp_dir
-        mv requirements.txt job_tmp_dir
-        cd job_tmp_dir
+        
 
-        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "mkdir -p ${{ inputs.remote_path }}"
-        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "module load singularity && singularity exec --contain -w --no-home  ${{ inputs.remote_singularity_registry_path }}/${{ inputs.image_name }} pip freeze" > freeze.txt
+        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "mkdir -p ${{ inputs.remote_path }}/requirements"
+        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "module load singularity && singularity exec --contain -w --no-home  ${{ inputs.remote_singularity_registry_path }}/${{ inputs.image }} pip freeze" > freeze.txt
         python ${{ github.action_path }}/get_packages_list.py --packages ./requirements.txt --installed ./freeze.txt > toinstall.txt
 
+        mkdir job_tmp_dir
+        cd job_tmp_dir
+
+        COUNTER=0
         while IFS= read -r package; do
+          echo "Download package $COUNTER"
           pip download "$package"
           
-          # Get the name of the downloaded package file (assuming only one file is downloaded)
-          PACKAGE_FILE=$(ls *.whl *.tar.gz 2>/dev/null)
-          
-          # Check if the package file exists
-          if [[ -f "$PACKAGE_FILE" ]]; then
-              # Push the package to the host
-              scp ${{ steps.globals.outputs.SSH_OPTIONS }} $PACKAGE_FILE ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }} 2>/dev/null
-
-              
-              # Clean up the downloaded package file
-              rm "$PACKAGE_FILE"
-          else
-              echo "Error: Failed to download package '$package'"
-              exit 1
-          fi
-        done < "$REQUIREMENTS_FILE"
+     
+          echo "Push package $COUNTER"
+          scp ${{ steps.globals.outputs.SSH_OPTIONS }} * ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }}/requirements
+          COUNTER=$((COUNTER + 1))
+          rm -f *.whl *.tar.gz
+        done < ../toinstall.txt
         
-        rm  toinstall.txt freeze.txt
+        cd ..
+        rm -rf toinstall.txt freeze.txt job_tmp_dir
         
 
     - uses: webfactory/ssh-agent@v0.9.0
@@ -166,20 +160,21 @@ runs:
       shell: bash
       run: |
         echo "Build docker"
-        docker build . --no-cache -t user/${{inputs.image_name}}:latest
+        NAME=$(echo "${{inputs.image}}" | sed 's/\//_/g')
+        docker build . --no-cache -t user/${NAME}:latest
 
         echo "Save docker"
-        docker save user/${{inputs.image_name}}:latest -o ${{inputs.image_name}}.tar 
-        docker image rm user/${{inputs.image_name}}:latest
+        docker save user/${NAME}:latest -o ${NAME}.tar 
+        docker image rm user/${NAME}:latest
       
         echo "Push docker tar file to ${{inputs.remote_path}}"
         ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}} 2>/dev/null "umask 007 && mkdir -p ${{inputs.remote_path}}"
         
-        scp ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.image_name}}.tar ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }}  2>/dev/null
-        scp ${{ steps.globals.outputs.SSH_OPTIONS }} [Dd]ocker[Ff]ile ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }}  2>/dev/null
+        scp ${{ steps.globals.outputs.SSH_OPTIONS }} ${NAME}.tar ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }}  2>/dev/null
+        # scp ${{ steps.globals.outputs.SSH_OPTIONS }} [Dd]ocker[Ff]ile ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }}  2>/dev/null
         
         # ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}}  2>/dev/null "chmod 660 -r ${{ inputs.remote_path }}"
-        rm ${{inputs.image_name}}.tar
+        rm ${NAME}.tar
 
 
         

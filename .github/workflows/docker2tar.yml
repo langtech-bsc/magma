@@ -7,7 +7,7 @@ on:
         required: false
         type: string
         default: shell    
-      image_name:
+      image:
         required: true
         type: string
       path:
@@ -24,7 +24,7 @@ jobs:
         with:
           job: 'docker2tar'
           remote_singularity_registry_path: ${{ vars.remote_singularity_registry_path }}
-          image_name: ${{ inputs.image_name }}
+          image: ${{ inputs.image }}
           remote_path: /gpfs/scratch/${{ secrets.REMOTE_GROUP }}/${{ secrets.REMOTE_USER }}/jobs/${{ inputs.path }}
           remote_user: ${{ secrets.REMOTE_USER}}
           remote_host: ${{ secrets.REMOTE_HOST }}
