@@ -31,7 +31,7 @@ on:
       enable_jupyter:
         required: false
         type: boolean
-        default: true
+        default: false
 
       jupyter_singularity:
         required: false
