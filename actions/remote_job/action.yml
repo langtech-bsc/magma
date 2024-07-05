@@ -14,8 +14,13 @@ inputs:
     default: false
 
   image:
-    description: "Name of the image" # <branch_name>, signularity_image_name.
+    description: "Name of the image" # <branch_name>:sha, signularity_image_name.
     required: true
+
+  old_image:
+    description: "Name of the image" # Required to install
+    required: false
+    default: "null"
 
   remote_singularity_registry_path:
     description: "Path where the singularity, sandbox will be saved, requierd only for install option"
@@ -58,6 +63,7 @@ runs:
         echo "job: ${{inputs.job}}"
         echo "sandbox: ${{inputs.sandbox}}"
         echo "image: ${{inputs.image}}"
+        echo "old_image: ${{inputs.old_image}}"
         echo "remote_singularity_registry_path: ${{inputs.remote_singularity_registry_path}}"
         echo "remote_path: ${{inputs.remote_path}}"
 
@@ -105,30 +111,29 @@ runs:
 
         echo "${{ steps.globals.outputs.ENV_PREFIX }}_PATH=${{inputs.remote_singularity_registry_path}}" >> "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
         echo "${{ steps.globals.outputs.ENV_PREFIX }}_REQUIREMENTS_PATH=${{inputs.remote_path}}" >> "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
+        echo "${{ steps.globals.outputs.ENV_PREFIX }}_OLD_IMAGE=${{inputs.old_image}}" >> "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
 
 
     - name: Install and push requirements
       if: ${{ contains(fromJson('["install"]'), inputs.job )}}
       shell: bash
       run: |
+
         ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "
-          if [ -d \"${{ inputs.remote_singularity_registry_path }}/${{ inputs.image }}\" ]; then
+          if [ -d \"${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }}\" ] || [ -f \"${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }}\" ]; then
             module load singularity
-            if ! singularity inspect ${{ inputs.remote_singularity_registry_path }}/${{ inputs.image }} >/dev/null 2>&1; then
+            if ! singularity inspect ${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }} >/dev/null 2>&1; then
               echo 'The directory is not a Singularity sandbox'
               exit 1
             fi
           else
-            echo 'The sandbox directory does not exist'
+            echo 'The sandbox or singularity does not exist'
             exit 1
           fi
         "
 
-        
-        
-
         ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "mkdir -p ${{ inputs.remote_path }}/requirements"
-        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "module load singularity && singularity exec --contain -w --no-home  ${{ inputs.remote_singularity_registry_path }}/${{ inputs.image }} pip freeze" > freeze.txt
+        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "module load singularity && singularity exec --contain -w --no-home  ${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }} pip list --format=freeze" > freeze.txt
         python ${{ github.action_path }}/get_packages_list.py --packages ./requirements.txt --installed ./freeze.txt > toinstall.txt
 
         mkdir job_tmp_dir

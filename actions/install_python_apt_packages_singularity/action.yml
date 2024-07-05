@@ -63,7 +63,7 @@ runs:
       
     # - name: Download requirements
     #   run: |
-    #     ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "module load singularity && singularity exec --contain -w --no-home  ${{ inputs.dir }}/${{ inputs.sandbox }} pip freeze" > freeze.txt
+    #     ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "module load singularity && singularity exec --contain -w --no-home  ${{ inputs.dir }}/${{ inputs.sandbox }} pip list --format=freeze" > freeze.txt
     #     python ${{ github.action_path }}/get_packages_list.py --packages ./requirements.txt --installed ./freeze.txt > toinstall.txt
     #     pip download -r toinstall.txt -d packages-${{ github.run_number }}
     #     rm  toinstall.txt freeze.txt

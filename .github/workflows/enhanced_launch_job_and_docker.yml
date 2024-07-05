@@ -1,4 +1,4 @@
-name: Enhanced Launch job
+name: Enhanced Launch job and docker
 
 on:
   workflow_call:
@@ -8,11 +8,6 @@ on:
         type: string
         default: magma-runner-set
 
-      local-repo: 
-        required: false
-        type: boolean
-        default: false
-      
 jobs:
   pre-job:
     uses: ./.github/workflows/pre_job_per_branch.yml
@@ -21,10 +16,53 @@ jobs:
       runs_on: ${{inputs.runs_on}}
       check_running_job: true
 
-      
+  docker2tar:
+    if: ${{contains(fromJson('["true", true]'), needs.pre-job.outputs.create_singularity) }}
+    needs:  pre-job
+    uses: ./.github/workflows/docker2tar.yml
+    secrets: inherit
+    with:
+      image: ${{needs.pre-job.outputs.singularity}}
+      path: ${{ needs.pre-job.outputs.job_path }}/build
+
+  build:
+    needs:  [pre-job, docker2tar]
+    uses: ./.github/workflows/launch_job.yml
+    secrets: inherit
+    with:
+      job_path: ${{ needs.pre-job.outputs.job_path }}/build
+      job_name: ${{ needs.pre-job.outputs.job_name }}
+      singularity: ${{ needs.pre-job.outputs.singularity }}
+      remote_job: "build"
+      remote_job_sandbox: ${{needs.pre-job.outputs.sandbox}}
+
+  install:
+    if: |
+      always() &&
+      needs.pre-job.result == 'success' &&
+      contains(fromJson('["true", true]'), needs.pre-job.outputs.install_reqs) &&
+      (needs.docker2tar.result == 'success' || needs.docker2tar.result == 'skipped') &&
+      (needs.build.result == 'success' || needs.build.result == 'skipped') 
+
+    needs:  [pre-job, docker2tar, build]
+    uses: ./.github/workflows/launch_job.yml
+    secrets: inherit
+    with:
+      job_path: ${{ needs.pre-job.outputs.job_path }}/install
+      job_name: ${{ needs.pre-job.outputs.job_name }}
+      singularity: ${{ needs.pre-job.outputs.singularity }}
+      old_image: ${{ needs.pre-job.outputs.old_image }}
+      remote_job: "install"
+
   launch-job:
-      if: ${{ needs.pre-job.result == 'success' && inputs.local-repo == false }}
-      needs: pre-job
+      if: |
+          always() &&
+          needs.pre-job.result == 'success' && 
+          (needs.docker2tar.result == 'success' || needs.docker2tar.result == 'skipped') &&
+          (needs.build.result == 'success' || needs.build.result == 'skipped') && 
+          (needs.install.result == 'success' || needs.install.result == 'skipped')
+
+      needs: [pre-job, docker2tar, build, install]
       uses: ./.github/workflows/launch_job.yml
       secrets: inherit
       with:

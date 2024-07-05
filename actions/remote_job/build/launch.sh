@@ -13,10 +13,10 @@
 source $JOB_PATH/remote_job.env
 
 IMAGES_PATH=$REMOTE_JOB_PATH
-IMAGE=$REMOTE_JOB_IMAGE
+IMAGE=$(echo "$REMOTE_JOB_IMAGE" | sed 's/req_.*/req_null/')
 DOCKER_TAR_PATH=$REMOTE_JOB_DOCKER_TAR_PATH
 SANDBOX=$REMOTE_JOB_SANDBOX
-TAR_NAME=$(echo $IMAGE | sed 's/\//_/g')
+TAR_NAME=$(echo $REMOTE_JOB_IMAGE | sed 's/\//_/g')
 
 module load singularity
 
@@ -26,7 +26,15 @@ echo "DOCKER_TAR_PATH: $DOCKER_TAR_PATH"
 echo "SANDBOX: $SANDBOX"
 echo "TAR_NAME: $TAR_NAME"
 
-mkdir -p $IMAGES_PATH/$IMAGE
+if [ ! -f "$DOCKER_TAR_PATH/$TAR_NAME.tar" ]; then
+    echo "Error: Docker tar file '$DOCKER_TAR_PATH/$TAR_NAME.tar' not found."
+    exit 1
+fi
+
+if [[ "$IMAGE" == */* ]]; then  # Check if string contains at least one slash
+    result="${IMAGE%/*}"        # Remove everything after the last '/'
+    mkdir -p $result
+fi
 
 
 if [ $SANDBOX ]; then

@@ -7,6 +7,11 @@ on:
         required: false
         type: string
         default: magma-runner-set
+
+      local-repo: 
+        required: false
+        type: boolean
+        default: false
       
 jobs:
   pre-job:
@@ -17,6 +22,7 @@ jobs:
       check_running_job: true
 
   launch-job:
+      if: ${{ needs.pre-job.result == 'success' && inputs.local-repo == false }}
       needs: pre-job
       uses: langtech-bsc/magma/.github/workflows/launch_job.yml@main
       secrets: inherit

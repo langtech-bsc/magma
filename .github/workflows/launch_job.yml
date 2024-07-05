@@ -23,6 +23,11 @@ on:
         type: string
         default: 'python-jupyter.sif'
 
+      old_image:
+        required: false
+        type: string
+        default: 'null'
+
       enable_tunnel:
         required: false
         type: boolean
@@ -171,6 +176,7 @@ jobs:
           remote_path: ${{env.JOB_PATH}}
           remote_user: ${{secrets.REMOTE_USER}}
           remote_host: ${{secrets.REMOTE_HOST}}
+          old_image: ${{inputs.old_image}}
           local_dir: 'src'
 
       - name: Save job related env vars to file

@@ -45,6 +45,12 @@ on:
         value: ${{jobs.pre-job-pre-branch.outputs.default_singularity}}
       singularity:
         value: ${{jobs.pre-job-pre-branch.outputs.singularity}}
+      old_image:
+        value: ${{jobs.pre-job-pre-branch.outputs.old_image}}
+      create_singularity:
+        value: ${{jobs.pre-job-pre-branch.outputs.create_singularity}}
+      install_reqs:
+        value: ${{jobs.pre-job-pre-branch.outputs.install_reqs}}
 
 jobs:
   pre-job-pre-branch:
@@ -66,7 +72,10 @@ jobs:
         enable_singularity: ${{ steps.set_defaults.outputs.enable_singularity}}
         sandbox: ${{ steps.set_defaults.outputs.sandbox}}
         default_singularity: ${{ steps.set_defaults.outputs.default_singularity}}
-        singularity: ${{ steps.set_defaults.outputs.singularity}}
+        singularity: ${{ steps.singularity.outputs.singularity}}
+        old_image: ${{ steps.singularity.outputs.old_image}}
+        create_singularity: ${{ steps.singularity.outputs.create_singularity}}
+        install_reqs: ${{ steps.singularity.outputs.install_reqs}}
 
       steps:
 
@@ -171,7 +180,7 @@ jobs:
           fi
 
           # Set default for singularity
-          if [ ${{ steps.yaml.outputs.singularity_enable }} = "true" ]; then
+          if [ "${{ steps.yaml.outputs.singularity_enable }}" = "true" ]; then
             echo "enable_singularity=true" >> $GITHUB_OUTPUT
             
             if [ -z "${{ steps.yaml.outputs.singularity_name }}" ]; then
@@ -183,7 +192,7 @@ jobs:
 
             if [ "${{ steps.yaml.outputs.singularity_sandbox }}" = "true" ]; then
                 echo "sandbox=true" >> $GITHUB_OUTPUT
-                SIF=".sif"
+                echo "sif=.sif" >> $GITHUB_OUTPUT
               else
                 echo "sandbox=false" >> $GITHUB_OUTPUT
             fi
@@ -195,10 +204,72 @@ jobs:
             echo "default_singularity=false" >> $GITHUB_OUTPUT
           fi
 
-          echo "singularity=${SINGULARITY}${SIF}" >> $GITHUB_OUTPUT
+          # Set singularity
+          echo "singularity=${SINGULARITY}" >> $GITHUB_OUTPUT
+
           # Set tgi params
           echo "tgi_params=${{ steps.yaml.outputs.tgi_params }}" >> $GITHUB_OUTPUT
- 
+
+      - name: Get singularity
+        id: singularity
+        if: ${{contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_singularity) }}
+        run: |
+          docker_file=$(ls [Dd]ocker[Ff]ile 2>/dev/null)
+          req_file=$(ls requirements.txt 2>/dev/null)
+          
+          docker_sha=$(md5sum "$docker_file" 2>/dev/null | awk '{print $1}')
+          req_sha=$(md5sum "$req_file" 2>/dev/null | awk '{print $1}')
+          
+          docker_sha=${docker_sha:-null}
+          req_sha=${req_sha:-null}
+
+          OLD_SING=null
+
+          
+          SING=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${{ secrets.remote_user }}@${{ secrets.remote_host }}" 2>/dev/null \
+          "cd ${{vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH}} && ls -d ${{steps.set_defaults.outputs.singularity}}:docker_${docker_sha}-req_${req_sha}" | head -n 1 || true)
+          
+          if [ -z "$SING" ]; then
+            
+            SING=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${{ secrets.remote_user }}@${{ secrets.remote_host }}" 2>/dev/null \
+                      "cd ${{vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH}} && ls -dt ${{steps.set_defaults.outputs.singularity}}*" | head -n 1 || true)
+            
+            if [ '${{steps.set_defaults.outputs.default_singularity}}' = 'true' ]; then
+              if [ -z "$SING" ]; then
+                [ "$docker_sha" = "null" ] && echo "Please add docker file as [Dockerfile, DockerFile, dockerFile, dockerfile] or disable singularity in your config.yml" && exit 1
+                echo "create_singularity=true" >> $GITHUB_OUTPUT
+                echo "install_reqs=false" >> $GITHUB_OUTPUT
+                OLD_SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_null
+
+              else
+                old_docker_sha=$(echo "$SING" | awk -F'docker_' '{print $2}' | awk -F'-req' '{print $1}')
+                old_req_sha=$(echo "$SING" | awk -F'req_' '{print $2}')
+            
+                if [ "$docker_sha" = "null" ]; then
+                    echo "create_singularity=false" >> $GITHUB_OUTPUT
+                    docker_sha="$old_docker_sha"
+                elif [ "$docker_sha" != "$old_docker_sha" ]; then
+                    CREATE=true
+                    echo "create_singularity=true" >> $GITHUB_OUTPUT
+                fi
+
+                if [ "$req_sha" = "null" ]; then
+                    echo "install_reqs=false" >> $GITHUB_OUTPUT
+                    req_sha="$old_req_sha"
+                elif [ "$req_sha" != "$old_req_sha" ]; then
+                    if [ "$CREATE" = "true" ]; then #On build it will put req sha to null
+                      OLD_SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_null
+                    else
+                      OLD_SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_${old_req_sha}
+                    fi
+                    echo "install_reqs=true" >> $GITHUB_OUTPUT
+                fi
+              fi
+              SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_${req_sha}
+            fi
+          fi
+          echo "old_image=$OLD_SING" >> $GITHUB_OUTPUT
+          echo "singularity=$SING" >> $GITHUB_OUTPUT
 
       - name: Output configuration
         run: |
@@ -215,4 +286,12 @@ jobs:
           echo "tgi_model: ${{ steps.set_defaults.outputs.tgi_model }}"
           echo "tgi_params: ${{ steps.set_defaults.outputs.tgi_params }}"
           echo "singularity: ${{ steps.set_defaults.outputs.singularity }}"
-          # echo "default_singularity: ${{ steps.default_singularity.outputs.default_singularity }}"
+          echo "default_singularity: ${{ steps.set_defaults.outputs.default_singularity }}"
+          echo "singularity: ${{ steps.singularity.outputs.singularity }}"
+          echo "old_image: ${{ steps.singularity.outputs.old_image }}"
+          echo "create_singularity: ${{ steps.singularity.outputs.create_singularity }}"
+          echo "install_reqs: ${{ steps.singularity.outputs.install_reqs }}"
+          
+          
+          
+          
