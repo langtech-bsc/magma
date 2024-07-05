@@ -118,12 +118,11 @@ runs:
       if: ${{ contains(fromJson('["install"]'), inputs.job )}}
       shell: bash
       run: |
-
         ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "
           if [ -d \"${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }}\" ] || [ -f \"${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }}\" ]; then
             module load singularity
-            if ! singularity inspect ${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }} >/dev/null 2>&1; then
-              echo 'The directory is not a Singularity sandbox'
+            if [ ! singularity inspect ${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }} >/dev/null 2>&1 ]; then
+              echo 'The directory or file is not a singularity or sandbox'
               exit 1
             fi
           else
@@ -132,8 +131,8 @@ runs:
           fi
         "
 
-        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "mkdir -p ${{ inputs.remote_path }}/requirements"
-        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "module load singularity && singularity exec --contain -w --no-home  ${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }} pip list --format=freeze" > freeze.txt
+        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} "mkdir -p ${{ inputs.remote_path }}/requirements"
+        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} "module load singularity && singularity exec --contain --no-home  ${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }} pip list --format=freeze" > freeze.txt
         python ${{ github.action_path }}/get_packages_list.py --packages ./requirements.txt --installed ./freeze.txt > toinstall.txt
 
         mkdir job_tmp_dir

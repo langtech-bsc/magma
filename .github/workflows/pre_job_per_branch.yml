@@ -14,46 +14,46 @@ on:
 
     outputs:
       job_name:
-        value: ${{jobs.pre-job-pre-branch.outputs.job_name}}
+        value: ${{jobs.pre-job-per-branch.outputs.job_name}}
       repo_branch:
-        value: ${{jobs.pre-job-pre-branch.outputs.repo_branch}}
+        value: ${{jobs.pre-job-per-branch.outputs.repo_branch}}
       branch:
-        value: ${{jobs.pre-job-pre-branch.outputs.branch}}
+        value: ${{jobs.pre-job-per-branch.outputs.branch}}
       job_path:
-        value: ${{jobs.pre-job-pre-branch.outputs.job_path}}
+        value: ${{jobs.pre-job-per-branch.outputs.job_path}}
       exists:
-        value: ${{jobs.pre-job-pre-branch.outputs.exists}}
+        value: ${{jobs.pre-job-per-branch.outputs.exists}}
       enable_tunnel:
-        value: ${{jobs.pre-job-pre-branch.outputs.enable_tunnel}}
+        value: ${{jobs.pre-job-per-branch.outputs.enable_tunnel}}
       enable_jupyter:
-        value: ${{jobs.pre-job-pre-branch.outputs.enable_jupyter}}
+        value: ${{jobs.pre-job-per-branch.outputs.enable_jupyter}}
       jupyter_singularity:
-        value: ${{jobs.pre-job-pre-branch.outputs.jupyter_singularity}}
+        value: ${{jobs.pre-job-per-branch.outputs.jupyter_singularity}}
       enable_tgi:
-        value: ${{jobs.pre-job-pre-branch.outputs.enable_tgi}}
+        value: ${{jobs.pre-job-per-branch.outputs.enable_tgi}}
       tgi_singularity:
-        value: ${{jobs.pre-job-pre-branch.outputs.tgi_singularity}}
+        value: ${{jobs.pre-job-per-branch.outputs.tgi_singularity}}
       tgi_model:
-        value: ${{jobs.pre-job-pre-branch.outputs.tgi_model}}
+        value: ${{jobs.pre-job-per-branch.outputs.tgi_model}}
       tgi_params:
-        value: ${{jobs.pre-job-pre-branch.outputs.tgi_params}}
+        value: ${{jobs.pre-job-per-branch.outputs.tgi_params}}
       enable_singularity:
-        value: ${{jobs.pre-job-pre-branch.outputs.enable_singularity}}
+        value: ${{jobs.pre-job-per-branch.outputs.enable_singularity}}
       sandbox:
-        value: ${{jobs.pre-job-pre-branch.outputs.sandbox}}
+        value: ${{jobs.pre-job-per-branch.outputs.sandbox}}
       default_singularity:
-        value: ${{jobs.pre-job-pre-branch.outputs.default_singularity}}
+        value: ${{jobs.pre-job-per-branch.outputs.default_singularity}}
       singularity:
-        value: ${{jobs.pre-job-pre-branch.outputs.singularity}}
+        value: ${{jobs.pre-job-per-branch.outputs.singularity}}
       old_image:
-        value: ${{jobs.pre-job-pre-branch.outputs.old_image}}
+        value: ${{jobs.pre-job-per-branch.outputs.old_image}}
       create_singularity:
-        value: ${{jobs.pre-job-pre-branch.outputs.create_singularity}}
+        value: ${{jobs.pre-job-per-branch.outputs.create_singularity}}
       install_reqs:
-        value: ${{jobs.pre-job-pre-branch.outputs.install_reqs}}
+        value: ${{jobs.pre-job-per-branch.outputs.install_reqs}}
 
 jobs:
-  pre-job-pre-branch:
+  pre-job-per-branch:
       runs-on: ${{inputs.runs_on}}
       outputs:
         job_name: ${{ steps.job_variables.outputs.job_name }}
@@ -238,7 +238,7 @@ jobs:
               if [ -z "$SING" ]; then
                 [ "$docker_sha" = "null" ] && echo "Please add docker file as [Dockerfile, DockerFile, dockerFile, dockerfile] or disable singularity in your config.yml" && exit 1
                 echo "create_singularity=true" >> $GITHUB_OUTPUT
-                echo "install_reqs=false" >> $GITHUB_OUTPUT
+                echo "install_reqs=true" >> $GITHUB_OUTPUT
                 OLD_SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_null
 
               else
@@ -252,17 +252,21 @@ jobs:
                     CREATE=true
                     echo "create_singularity=true" >> $GITHUB_OUTPUT
                 fi
-
+                
                 if [ "$req_sha" = "null" ]; then
                     echo "install_reqs=false" >> $GITHUB_OUTPUT
                     req_sha="$old_req_sha"
                 elif [ "$req_sha" != "$old_req_sha" ]; then
+                    echo "Hola"
                     if [ "$CREATE" = "true" ]; then #On build it will put req sha to null
                       OLD_SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_null
                     else
                       OLD_SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_${old_req_sha}
                     fi
                     echo "install_reqs=true" >> $GITHUB_OUTPUT
+                elif [ "$CREATE" = "true" ]; then
+                  OLD_SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_null
+                  echo "install_reqs=true" >> $GITHUB_OUTPUT
                 fi
               fi
               SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_${req_sha}
@@ -287,6 +291,7 @@ jobs:
           echo "tgi_params: ${{ steps.set_defaults.outputs.tgi_params }}"
           echo "singularity: ${{ steps.set_defaults.outputs.singularity }}"
           echo "default_singularity: ${{ steps.set_defaults.outputs.default_singularity }}"
+          echo "sandbox: ${{ steps.set_defaults.outputs.sandbox }}"
           echo "singularity: ${{ steps.singularity.outputs.singularity }}"
           echo "old_image: ${{ steps.singularity.outputs.old_image }}"
           echo "create_singularity: ${{ steps.singularity.outputs.create_singularity }}"

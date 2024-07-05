@@ -16,6 +16,8 @@ IMAGES_PATH=$REMOTE_JOB_PATH
 IMAGE=$REMOTE_JOB_IMAGE
 OLD_IMAGE=$REMOTE_JOB_OLD_IMAGE
 REQUIREMENTS_PATH=$REMOTE_JOB_REQUIREMENTS_PATH
+TMP_IMAGE=$(echo $REMOTE_JOB_IMAGE | sed 's/\//_/g')
+TMP_IMAGE=${TMP_IMAGE}_sandbox
 
 echo "IMAGES_PATH: $IMAGES_PATH"
 echo "IMAGE: $IMAGE"
@@ -24,29 +26,49 @@ echo "REQUIREMENTS_PATH: $REQUIREMENTS_PATH"
 
 # mkdir -p $IMAGES_PATH
 
-if [ "$OLD_IMAGE" != "null" ] && [ -n "$OLD_IMAGE" ] && [ "$OLD_IMAGE" != "$IMAGE" ]; then
-    cp -r $IMAGES_PATH/$OLD_IMAGE $IMAGES_PATH/$IMAGE
+
+if [ -f $IMAGES_PATH/$OLD_IMAGE ]; then
+    echo "Build sandbox from singularity"
+    SANDBOX="true"
+    singularity build --sandbox $TMP_IMAGE $IMAGES_PATH/$OLD_IMAGE
+elif [ -d $IMAGES_PATH/$OLD_IMAGE ]; then
+    echo "Move sandbox"
+    cp -r $IMAGES_PATH/$OLD_IMAGE $TMP_IMAGE
+else
+    echo "Not a sandbox or singularity"
+    exit 1
 fi
 
-TMP_NAME=$IMAGE
-if [ -f $IMAGES_PATH/$IMAGE ]; then
-    SANDBOX=true
-    TMP_NAME=${IMAGE}_sandbox
-    sudo singularity build --sandbox $TMP_NAME $IMAGE
+echo "Variables
+echo "\tIMAGES_PATH: $IMAGES_PATH"
+echo "\tIMAGE: $IMAGE"
+echo "\tREQUIREMENTS_PATH: $REQUIREMENTS_PATH"
+echo "\tSANDBOX: $SANDBOX"
+echo "\tTMP_IMAGE: $TMP_IMAGE"
+
+echo ""
+echo "Create requirementes dir"
+singularity exec --contain -w --no-home $TMP_IMAGE /bin/sh -c 'mkdir -p /requirements'
+
+echo "Install dependecies"
+singularity exec -w --contain --no-home --bind $REQUIREMENTS_PATH/requirements:/requirements $TMP_IMAGE /bin/sh -c  'export TMPDIR=/tmp && pip install --force-reinstall /requirements/*'
+
+if [ "$SANDBOX" = "true" ]; then
+    echo "Build singularity from sandbox"
+
+    NEW_NAME=${TMP_IMAGE}.sif
+    singularity build --force $NEW_NAME $TMP_IMAGE
+    rm -rf $TMP_IMAGE
+    TMP_IMAGE=$NEW_NAME
 fi
 
-echo "IMAGES_PATH: $IMAGES_PATH"
-echo "IMAGE: $IMAGE"
-echo "REQUIREMENTS_PATH: $REQUIREMENTS_PATH"
-echo "SANDBOX: $SANDBOX"
-echo "TMP_NAME: $TMP_NAME"
-
-singularity exec --contain -w --no-home $IMAGES_PATH/$TMP_NAME /bin/sh -c 'mkdir -p /requirements'
-singularity exec -w --contain --no-home --bind $REQUIREMENTS_PATH/requirements:/requirements $IMAGES_PATH/$TMP_NAME /bin/sh -c  'export TMPDIR=/tmp && pip install --force-reinstall /requirements/*'
-
-if [ -z $SANDBOX ]; then
-    sudo singularity build --force $IMAGE $TMP_NAME
-    rm -rf $TMP_NAME
+touch $JOB_LOGS_PATH/error.log
+if grep -q "^ERROR:" "$JOB_LOGS_PATH/error.log"; then
+    echo "An error was detected"
+    grep "^ERROR:" "$JOB_LOGS_PATH/error.log"
+    exit 1
 fi
 
+echo "Move singularity with new image name"
+mv $TMP_IMAGE $IMAGES_PATH/$IMAGE
 rm -r $REQUIREMENTS_PATH/requirements

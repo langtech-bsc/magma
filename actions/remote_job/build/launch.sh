@@ -37,7 +37,7 @@ if [[ "$IMAGE" == */* ]]; then  # Check if string contains at least one slash
 fi
 
 
-if [ $SANDBOX ]; then
+if [ "$SANDBOX" = "true" ]; then
     echo "Building sandbox"
     singularity build -F -s $IMAGES_PATH/$IMAGE docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
 else
