@@ -203,7 +203,7 @@ jobs:
           remote_user: ${{ secrets.REMOTE_USER }}
           remote_source_path: ${{ env.JOB_LOGS_PATH }}
           traking_url: ${{ env.MLFLOW_TRACKING_SERVER_URL }}
-          run_name: ${{ env.SLURM_JOB_ID }} 
+          run_name: ${{ env.SLURM_JOB_ID }}_${{env.JOB_BRANCH}}
           schedule: 'true'
         continue-on-error: true
       
