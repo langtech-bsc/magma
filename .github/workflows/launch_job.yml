@@ -250,18 +250,16 @@ jobs:
                 #     echo "Job_ID: $result" 
                 # fi) ${{ steps.mlflow.outputs.sync_dir }}/debug.log 2>&1
 
-                REMOVE_SOCKET="cd ${{ env.JOB_PATH }} && rm -rf ${{ env.EXTRA_SOCKET }} ${{ env.JUPYTER_SOCKET }}"
-                CREATE_SOCKET="cd ${{ env.JOB_PATH }} && ssh -Nf -L ./${{ env.EXTRA_SOCKET }}:localhost:${{ env.PORT2 }} -L ./${{ env.JUPYTER_SOCKET }}:localhost:${{ env.PORT1 }} ${SLURM_JOB_NODE}"
+                CHANGE_DIR="cd ${{ env.JOB_PATH }}"
+                REMOVE_SOCKET="rm -rf ${{ env.EXTRA_SOCKET }} ${{ env.JUPYTER_SOCKET }}"
+                CREATE_SOCKET="ssh -Nf -L ./${{ env.EXTRA_SOCKET }}:localhost:${{ env.PORT2 }} -L ./${{ env.JUPYTER_SOCKET }}:localhost:${{ env.PORT1 }} ${SLURM_JOB_NODE}"
                 PERMISION_SOCKET="cd ${{ env.JOB_PATH }} && chmod 660 ${{ env.EXTRA_SOCKET }} ${{ env.JUPYTER_SOCKET }}"
                 CREATE_LINKS="mkdir -p ${{ env.JOB_TUNNELS_PATH }} && cd ${{ env.JOB_TUNNELS_PATH }} && ln -sf ${{ env.JOB_PATH }}/${{ env.EXTRA_SOCKET }} ${{env.JOB_NAME}}-${{env.EXTRA_SOCKET}} && ln -sf ${{ env.JOB_PATH }}/${{ env.JUPYTER_SOCKET }} ${{env.JOB_NAME}}-${{env.JUPYTER_SOCKET}}"
 
-                echo $REMOVE_SOCKET >> ${{ steps.mlflow.outputs.sync_dir }}/debug.log
-                echo $CREATE_SOCKET >> ${{ steps.mlflow.outputs.sync_dir }}/debug.log
+                echo $CHANGE_DIR && $REMOVE_SOCKET && $CREATE_SOCKET && $PERMISION_SOCKET >> ${{ steps.mlflow.outputs.sync_dir }}/debug.log
                 echo $CREATE_LINK >> ${{ steps.mlflow.outputs.sync_dir }}/debug.log
                 
-                ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "${REMOVE_SOCKET}"
-                ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "${CREATE_SOCKET}"
-                ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "${PERMISION_SOCKET}"
+                ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "$CHANGE_DIR && $REMOVE_SOCKET && $CREATE_SOCKET && $PERMISION_SOCKET"
                 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "${CREATE_LINKS}"
 
                 echo "${{ env.JOB_SSH_TUNNEL_COMMAND }}" > ${{ steps.mlflow.outputs.sync_dir }}/tunnel.log
