@@ -150,10 +150,10 @@ jobs:
         run: |
           mkdir -p src/logs
           env | grep -e '^JOB_' -e '^GPFS_' > src/job.env
-          echo $(uuid)
-          UUID=$(uuidgen)
-          echo "UUID=$UUID" >> "$GITHUB_ENV"
-          echo "JOB_SSH_TUNNEL_COMMAND=ssh -N -L ${{ env.PORT2 }}:${{ env.JOB_TUNNELS_PATH }}/${UUID}-${{env.EXTRA_SOCKET}} -L ${{ env.PORT1 }}:${{ env.JOB_TUNNELS_PATH }}/${UUID}-${{env.JUPYTER_SOCKET}} ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}" >> $GITHUB_ENV
+          
+          HASHED_NAME=$(echo -n "${{env.JOB_NAME}}" | md5sum | awk '{print $1}')
+          echo "HASHED_NAME=$HASHED_NAME" >> "$GITHUB_ENV"
+          echo "JOB_SSH_TUNNEL_COMMAND=ssh -N -L ${{ env.PORT2 }}:${{ env.JOB_TUNNELS_PATH }}/${HASHED_NAME}-${{env.EXTRA_SOCKET}} -L ${{ env.PORT1 }}:${{ env.JOB_TUNNELS_PATH }}/${HASHED_NAME}-${{env.JUPYTER_SOCKET}} ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}" >> $GITHUB_ENV
 
       
       - uses: langtech-bsc/magma/actions/addons@main
@@ -257,7 +257,7 @@ jobs:
                 REMOVE_SOCKET="rm -rf ${{ env.EXTRA_SOCKET }} ${{ env.JUPYTER_SOCKET }}"
                 CREATE_SOCKET="ssh -Nf -L ./${{ env.EXTRA_SOCKET }}:localhost:${{ env.PORT2 }} -L ./${{ env.JUPYTER_SOCKET }}:localhost:${{ env.PORT1 }} ${SLURM_JOB_NODE}"
                 PERMISION_SOCKET="cd ${{ env.JOB_PATH }} && chmod 660 ${{ env.EXTRA_SOCKET }} ${{ env.JUPYTER_SOCKET }}"
-                CREATE_LINKS="mkdir -p ${{ env.JOB_TUNNELS_PATH }} && cd ${{ env.JOB_TUNNELS_PATH }} && ln -sf ${{ env.JOB_PATH }}/${{ env.EXTRA_SOCKET }} ${{env.UUID}}-${{env.EXTRA_SOCKET}} && ln -sf ${{ env.JOB_PATH }}/${{ env.JUPYTER_SOCKET }} ${{env.UUID}}-${{env.JUPYTER_SOCKET}}"
+                CREATE_LINKS="mkdir -p ${{ env.JOB_TUNNELS_PATH }} && cd ${{ env.JOB_TUNNELS_PATH }} && ln -sf ${{ env.JOB_PATH }}/${{ env.EXTRA_SOCKET }} ${{env.HASHED_NAME}}-${{env.EXTRA_SOCKET}} && ln -sf ${{ env.JOB_PATH }}/${{ env.JUPYTER_SOCKET }} ${{env.HASHED_NAME}}-${{env.JUPYTER_SOCKET}}"
 
                 echo "$CHANGE_DIR && $REMOVE_SOCKET && $CREATE_SOCKET && $PERMISION_SOCKET" >> ${{ steps.mlflow.outputs.sync_dir }}/debug.log
                 echo $CREATE_LINK >> ${{ steps.mlflow.outputs.sync_dir }}/debug.log
