@@ -118,6 +118,10 @@ runs:
       if: ${{ contains(fromJson('["install"]'), inputs.job )}}
       shell: bash
       run: |
+        pip install virtualenv
+        virtualenv temp_env
+        source temp_env/bin/activate
+
         ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "
           if [ -d \"${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }}\" ] || [ -f \"${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }}\" ]; then
             module load singularity
@@ -131,9 +135,12 @@ runs:
           fi
         "
 
-        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} "mkdir -p ${{ inputs.remote_path }}/requirements"
+        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} "rm -f ${{ inputs.remote_path }}/requirements/* && mkdir -p ${{ inputs.remote_path }}/requirements"
         ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} "module load singularity && singularity exec --contain --no-home  ${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }} pip list --format=freeze" > freeze.txt
+        python_version=$(ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} "module load singularity && singularity exec --contain --no-home ${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }} python -c \"import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')\"")
         python ${{ github.action_path }}/get_packages_list.py --packages ./requirements.txt --installed ./freeze.txt > toinstall.txt
+      
+        echo $python_version
 
         mkdir job_tmp_dir
         cd job_tmp_dir
@@ -141,9 +148,8 @@ runs:
         COUNTER=0
         while IFS= read -r package; do
           echo "Download package $COUNTER"
-          pip download "$package"
-          
-     
+          pip download "$package" --python-version $python_version --platform manylinux2014_x86_64 --only-binary=:all:
+               
           echo "Push package $COUNTER"
           scp ${{ steps.globals.outputs.SSH_OPTIONS }} * ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }}/requirements
           COUNTER=$((COUNTER + 1))
@@ -151,8 +157,10 @@ runs:
         done < ../toinstall.txt
         
         cd ..
+        scp ${{ steps.globals.outputs.SSH_OPTIONS }} toinstall.txt ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }}/requirements
         rm -rf toinstall.txt freeze.txt job_tmp_dir
-        
+        deactivate
+        rm -rf temp_env
 
     - uses: webfactory/ssh-agent@v0.9.0
       if: ${{ inputs.job == 'docker2tar' }}

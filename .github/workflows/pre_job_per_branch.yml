@@ -192,8 +192,8 @@ jobs:
 
             if [ "${{ steps.yaml.outputs.singularity_sandbox }}" = "true" ]; then
                 echo "sandbox=true" >> $GITHUB_OUTPUT
-                echo "sif=.sif" >> $GITHUB_OUTPUT
               else
+                echo "sif=.sif" >> $GITHUB_OUTPUT
                 echo "sandbox=false" >> $GITHUB_OUTPUT
             fi
           fi
@@ -227,7 +227,7 @@ jobs:
 
           
           SING=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${{ secrets.remote_user }}@${{ secrets.remote_host }}" 2>/dev/null \
-          "cd ${{vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH}} && ls -d ${{steps.set_defaults.outputs.singularity}}:docker_${docker_sha}-req_${req_sha}" | head -n 1 || true)
+          "cd ${{vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH}} && ls -d ${{steps.set_defaults.outputs.singularity}}:docker_${docker_sha}-req_${req_sha}*" | head -n 1 || true)
           
           if [ -z "$SING" ]; then
             
@@ -239,12 +239,13 @@ jobs:
                 [ "$docker_sha" = "null" ] && echo "Please add docker file as [Dockerfile, DockerFile, dockerFile, dockerfile] or disable singularity in your config.yml" && exit 1
                 echo "create_singularity=true" >> $GITHUB_OUTPUT
                 echo "install_reqs=true" >> $GITHUB_OUTPUT
-                OLD_SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_null
+                OLD_SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_null${{steps.set_defaults.outputs.sif}}
 
               else
                 old_docker_sha=$(echo "$SING" | awk -F'docker_' '{print $2}' | awk -F'-req' '{print $1}')
                 old_req_sha=$(echo "$SING" | awk -F'req_' '{print $2}')
-            
+                old_req_sha=${old_req_sha%.sif}
+                
                 if [ "$docker_sha" = "null" ]; then
                     echo "create_singularity=false" >> $GITHUB_OUTPUT
                     docker_sha="$old_docker_sha"
@@ -257,11 +258,10 @@ jobs:
                     echo "install_reqs=false" >> $GITHUB_OUTPUT
                     req_sha="$old_req_sha"
                 elif [ "$req_sha" != "$old_req_sha" ]; then
-                    echo "Hola"
                     if [ "$CREATE" = "true" ]; then #On build it will put req sha to null
-                      OLD_SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_null
+                      OLD_SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_null${{steps.set_defaults.outputs.sif}}
                     else
-                      OLD_SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_${old_req_sha}
+                      OLD_SING=$SING
                     fi
                     echo "install_reqs=true" >> $GITHUB_OUTPUT
                 elif [ "$CREATE" = "true" ]; then
@@ -269,7 +269,7 @@ jobs:
                   echo "install_reqs=true" >> $GITHUB_OUTPUT
                 fi
               fi
-              SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_${req_sha}
+              SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_${req_sha}${{steps.set_defaults.outputs.sif}}
             fi
           fi
           echo "old_image=$OLD_SING" >> $GITHUB_OUTPUT
