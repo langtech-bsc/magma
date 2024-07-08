@@ -261,9 +261,9 @@ jobs:
 
                 echo "$CHANGE_DIR && $REMOVE_SOCKET && $CREATE_SOCKET && $PERMISION_SOCKET" >> ${{ steps.mlflow.outputs.sync_dir }}/debug.log
                 echo $CREATE_LINK >> ${{ steps.mlflow.outputs.sync_dir }}/debug.log
-                
+                sleep 20
                 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "$CHANGE_DIR && $REMOVE_SOCKET && $CREATE_SOCKET && $PERMISION_SOCKET"
-                ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "${CREATE_LINKS}"
+                # ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "${CREATE_LINKS}"
 
                 echo "${{ env.JOB_SSH_TUNNEL_COMMAND }}" > ${{ steps.mlflow.outputs.sync_dir }}/tunnel.log
               fi
