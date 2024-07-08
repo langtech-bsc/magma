@@ -67,7 +67,7 @@ jobs:
       PORT1: "8888"
       PORT2: "8080"
       JOB_PATH: ${{ inputs.job_path }}
-      JOB_TUNNELS_PATH: /gpfs/scratch/${{ secrets.REMOTE_GROUP }}/tunnels
+      JOB_TUNNELS_PATH: /gpfs/scratch/${{ secrets.REMOTE_GROUP }}/${{ secrets.REMOTE_USER }}/tunnels
       JOB_NAME: ${{ inputs.job_name }}
       JOB_SINGULARITY_IMAGE: ${{ vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH }}/${{ inputs.singularity }}
       JOB_ENABLE_TUNNEL: ${{ inputs.enable_tunnel }}
