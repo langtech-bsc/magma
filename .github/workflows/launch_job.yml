@@ -150,6 +150,7 @@ jobs:
         run: |
           mkdir -p src/logs
           env | grep -e '^JOB_' -e '^GPFS_' > src/job.env
+          echo $(uuid)
           UUID=$(uuidgen)
           echo "UUID=$UUID" >> "$GITHUB_ENV"
           echo "JOB_SSH_TUNNEL_COMMAND=ssh -N -L ${{ env.PORT2 }}:${{ env.JOB_TUNNELS_PATH }}/${UUID}-${{env.EXTRA_SOCKET}} -L ${{ env.PORT1 }}:${{ env.JOB_TUNNELS_PATH }}/${UUID}-${{env.JUPYTER_SOCKET}} ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}" >> $GITHUB_ENV
