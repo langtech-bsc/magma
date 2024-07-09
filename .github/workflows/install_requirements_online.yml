@@ -1,4 +1,4 @@
-name: Build docker to .tar
+name: Install requirements online
 
 on:
   workflow_call:
@@ -6,25 +6,30 @@ on:
       runs_on:
         required: false
         type: string
-        default: shell    
+        default: magma-runner-set
+      old_image:
+        required: true
+        type: string
       image:
         required: true
         type: string
-      path:
+      job_path:
         required: true
         type: string
 
 jobs:
-  docker2trar:
+  install-requirements-online:
     timeout-minutes: 43200
     runs-on: ${{ inputs.runs_on }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./actions/remote_job
         with:
-          job: 'docker2tar'
+          job: 'install-online'
+          remote_singularity_registry_path: ${{ vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH }}
           image: ${{ inputs.image }}
-          remote_path: /gpfs/scratch/${{ secrets.REMOTE_GROUP }}/${{ secrets.REMOTE_USER }}/jobs/${{ inputs.path }}
+          old_image: ${{ inputs.old_image }}
+          remote_path: /gpfs/scratch/${{ secrets.REMOTE_GROUP }}/${{ secrets.REMOTE_USER }}/jobs/${{ inputs.job_path }}
           remote_user: ${{ secrets.REMOTE_USER}}
           remote_host: ${{ secrets.REMOTE_HOST }}
           ssh_secret_key: ${{ secrets.SSH_PRIVATE_KEY }}

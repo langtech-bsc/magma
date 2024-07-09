@@ -39,10 +39,12 @@ fi
 
 if [ "$SANDBOX" = "true" ]; then
     echo "Building sandbox"
-    singularity build -F -s $IMAGES_PATH/$IMAGE docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
+    singularity build -F -s $TAR_NAME docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
 else
     echo "Building singularity"
-    singularity build -F $IMAGES_PATH/$IMAGE docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
+    singularity build -F $TAR_NAME docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
 fi
 
+mv $TAR_NAME $IMAGES_PATH/$IMAGE
+chmod 770 -R $IMAGES_PATH/$IMAGE
 rm $DOCKER_TAR_PATH/$TAR_NAME.tar

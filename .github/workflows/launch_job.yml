@@ -51,7 +51,7 @@ on:
       tgi_singularity:
         required: false
         type: string
-        default: 'text-generation-inference.singularity.1.4.4.sif'
+        default: 'text-generation-inference.2.1.1.sif'
 
       tgi_model:
         required: false
@@ -83,7 +83,6 @@ jobs:
       PORT1: "8888"
       PORT2: "8080"
       JOB_PATH: ${{ inputs.job_path }}
-      JOB_TUNNELS_PATH: /gpfs/scratch/${{ secrets.REMOTE_GROUP }}/${{ secrets.REMOTE_USER }}/tunnels
       JOB_NAME: ${{ inputs.job_name }}
       JOB_SINGULARITY_IMAGE: ${{ vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH }}/${{ inputs.singularity }}
       JOB_ENABLE_TUNNEL: ${{ inputs.enable_tunnel }}
@@ -160,8 +159,8 @@ jobs:
       - name: Set Socket variables
         if: ${{ env.JOB_ENABLE_TUNNEL == 'true' || env.JOB_ENABLE_TUNNEL == true}}
         run: |
-          EXTRA_SOCKET=socket${{ env.PORT2 }}.sock
-          JUPYTER_SOCKET=socket${{ env.PORT1 }}.sock
+          EXTRA_SOCKET=${{ env.JOB_PATH }}/socket${{ env.PORT2 }}.sock
+          JUPYTER_SOCKET=${{ env.JOB_PATH }}/socket${{ env.PORT1 }}.sock
           echo "EXTRA_SOCKET=${EXTRA_SOCKET}" >> "$GITHUB_ENV"
           echo "JUPYTER_SOCKET=${JUPYTER_SOCKET}" >> "$GITHUB_ENV"
 
@@ -184,10 +183,7 @@ jobs:
         run: |
           mkdir -p src/logs
           env | grep -e '^JOB_' -e '^GPFS_' > src/job.env
-          
-          HASHED_NAME=$(echo -n "${{env.JOB_NAME}}" | md5sum | awk '{print $1}')
-          echo "HASHED_NAME=$HASHED_NAME" >> "$GITHUB_ENV"
-          echo "JOB_SSH_TUNNEL_COMMAND=ssh -N -L ${{ env.PORT2 }}:${{ env.JOB_TUNNELS_PATH }}/${HASHED_NAME}-${{env.EXTRA_SOCKET}} -L ${{ env.PORT1 }}:${{ env.JOB_TUNNELS_PATH }}/${HASHED_NAME}-${{env.JUPYTER_SOCKET}} ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}" >> $GITHUB_ENV
+          echo "JOB_SSH_TUNNEL_COMMAND=ssh -N -L ${{ env.PORT2 }}:${EXTRA_SOCKET} -L ${{ env.PORT1 }}:${JUPYTER_SOCKET} ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}" >> $GITHUB_ENV
 
       
       - uses: langtech-bsc/magma/actions/addons@main
@@ -234,7 +230,7 @@ jobs:
           remote_user: ${{ secrets.REMOTE_USER }}
           remote_source_path: ${{ env.JOB_LOGS_PATH }}
           traking_url: ${{ env.MLFLOW_TRACKING_SERVER_URL }}
-          run_name: ${{ env.SLURM_JOB_ID }}_${{env.JOB_BRANCH}}
+          run_name: ${{ env.SLURM_JOB_ID }} 
           schedule: 'true'
         continue-on-error: true
       
@@ -284,18 +280,17 @@ jobs:
                 #     echo "Job_ID: $result" 
                 # fi) ${{ steps.mlflow.outputs.sync_dir }}/debug.log 2>&1
 
-                CHANGE_DIR="cd ${{ env.JOB_PATH }}"
                 REMOVE_SOCKET="rm -rf ${{ env.EXTRA_SOCKET }} ${{ env.JUPYTER_SOCKET }}"
-                CREATE_SOCKET="ssh -Nf -L ./${{ env.EXTRA_SOCKET }}:localhost:${{ env.PORT2 }} -L ./${{ env.JUPYTER_SOCKET }}:localhost:${{ env.PORT1 }} ${SLURM_JOB_NODE}"
-                PERMISION_SOCKET="cd ${{ env.JOB_PATH }} && chmod 660 ${{ env.EXTRA_SOCKET }} ${{ env.JUPYTER_SOCKET }}"
-                CREATE_LINKS="mkdir -p ${{ env.JOB_TUNNELS_PATH }} && cd ${{ env.JOB_TUNNELS_PATH }} && ln -sf ${{ env.JOB_PATH }}/${{ env.EXTRA_SOCKET }} ${{env.HASHED_NAME}}-${{env.EXTRA_SOCKET}} && ln -sf ${{ env.JOB_PATH }}/${{ env.JUPYTER_SOCKET }} ${{env.HASHED_NAME}}-${{env.JUPYTER_SOCKET}}"
+                CREATE_SOCKET="ssh -Nf -L ${{ env.EXTRA_SOCKET }}:localhost:${{ env.PORT2 }} -L ${{ env.JUPYTER_SOCKET }}:localhost:${{ env.PORT1 }} ${SLURM_JOB_NODE}"
+                PERMISION_SOCKET="chmod 660 ${{ env.EXTRA_SOCKET }} ${{ env.JUPYTER_SOCKET }}"
 
-                echo "$CHANGE_DIR && $REMOVE_SOCKET && $CREATE_SOCKET && $PERMISION_SOCKET" >> ${{ steps.mlflow.outputs.sync_dir }}/debug.log
-                echo $CREATE_LINK >> ${{ steps.mlflow.outputs.sync_dir }}/debug.log
-                sleep 20
-                ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "$CHANGE_DIR && $REMOVE_SOCKET && $CREATE_SOCKET && $PERMISION_SOCKET"
-                # ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "${CREATE_LINKS}"
-
+                echo $REMOVE_SOCKET >> ${{ steps.mlflow.outputs.sync_dir }}/debug.log
+                echo $CREATE_SOCKET >> ${{ steps.mlflow.outputs.sync_dir }}/debug.log
+                echo $PERMISION_SOCKET >> ${{ steps.mlflow.outputs.sync_dir }}/debug.log
+                
+                ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "${REMOVE_SOCKET}"
+                ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "${CREATE_SOCKET}"
+                ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "${PERMISION_SOCKET}"
                 echo "${{ env.JOB_SSH_TUNNEL_COMMAND }}" > ${{ steps.mlflow.outputs.sync_dir }}/tunnel.log
               fi
               break
