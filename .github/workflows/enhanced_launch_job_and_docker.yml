@@ -10,7 +10,7 @@ on:
 
 jobs:
   pre-job:
-    uses: ./.github/workflows/pre_job_per_branch.yml
+    uses: langtech-bsc/magma/.github/workflows/pre_job_per_branch.yml@main
     secrets: inherit
     with:
       runs_on: ${{inputs.runs_on}}
@@ -19,7 +19,7 @@ jobs:
   docker2tar:
     if: ${{contains(fromJson('["true", true]'), needs.pre-job.outputs.create_singularity) }}
     needs:  pre-job
-    uses: ./.github/workflows/docker2tar.yml
+    uses: langtech-bsc/magma/.github/workflows/docker2tar.yml@main
     secrets: inherit
     with:
       image: ${{needs.pre-job.outputs.singularity}}
@@ -27,7 +27,7 @@ jobs:
 
   build:
     needs:  [pre-job, docker2tar]
-    uses: ./.github/workflows/launch_job.yml
+    uses: langtech-bsc/magma/.github/workflows/launch_job.yml@main
     secrets: inherit
     with:
       job_path: ${{ needs.pre-job.outputs.job_path }}/build
@@ -45,7 +45,7 @@ jobs:
       (needs.build.result == 'success' || needs.build.result == 'skipped') 
 
     needs:  [pre-job, docker2tar, build]
-    uses: ./.github/workflows/install_requirements_online.yml
+    uses: langtech-bsc/magma/.github/workflows/install_requirements_online.yml@main
     secrets: inherit
     with:
       job_path: ${{ needs.pre-job.outputs.job_path }}/install
@@ -63,7 +63,7 @@ jobs:
   #     (needs.build.result == 'success' || needs.build.result == 'skipped') 
 
   #   needs:  [pre-job, docker2tar, build]
-  #   uses: ./.github/workflows/launch_job.yml
+  #   uses: langtech-bsc/magma/.github/workflows/launch_job.yml@main
   #   secrets: inherit
   #   with:
   #     job_path: ${{ needs.pre-job.outputs.job_path }}/install
@@ -81,7 +81,7 @@ jobs:
           (needs.install.result == 'success' || needs.install.result == 'skipped')
 
       needs: [pre-job, docker2tar, build, install]
-      uses: ./.github/workflows/launch_job.yml
+      uses: langtech-bsc/magma/.github/workflows/launch_job.yml@main
       secrets: inherit
       with:
         runs_on: ${{ inputs.runs_on }}

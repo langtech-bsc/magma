@@ -166,7 +166,7 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - uses: ./actions/remote_job
+      - uses: langtech-bsc/magma/actions/remote_job@main
         if: ${{ contains(fromJson('["install", "build", "ldconfig"]'), inputs.remote_job) }}
         with:
           job: ${{inputs.remote_job}}

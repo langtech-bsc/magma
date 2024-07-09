@@ -23,7 +23,7 @@ jobs:
     runs-on: ${{ inputs.runs_on }}
     steps:
       - uses: actions/checkout@v4
-      - uses: ./actions/remote_job
+      - uses: langtech-bsc/magma/actions/remote_job@main
         with:
           job: 'install-online'
           remote_singularity_registry_path: ${{ vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH }}
