@@ -94,14 +94,14 @@ jobs:
       GPFS_TGI_MODEL: ${{ inputs.tgi_model }}
 
     steps:
-      - uses: langtech-bsc/magma/actions/set_secrets_to_env_action@41-install-python-and-apt-packages-in-sandbox
+      - uses: langtech-bsc/magma/actions/set_secrets_to_env_action@main
         with:
           must_exist: 'REMOTE_HOST,REMOTE_USER,REMOTE_GROUP,SSH_PRIVATE_KEY'
           exclude: 'SSH_PRIVATE_KEY'
           json: ${{ toJson(secrets) }}
           name: 'secret'
 
-      - uses: langtech-bsc/magma/actions/set_secrets_to_env_action@41-install-python-and-apt-packages-in-sandbox
+      - uses: langtech-bsc/magma/actions/set_secrets_to_env_action@main
         with:
           must_exist: 'MLFLOW_TRACKING_SERVER_URL,GPFS_SINGULARITY_IMAGE_REGISTRY_PATH,GPFS_MODELS_REGISTRY_PATH'
           json: ${{ toJson(vars) }}
@@ -167,7 +167,7 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - uses: langtech-bsc/magma/actions/remote_job@41-install-python-and-apt-packages-in-sandbox
+      - uses: langtech-bsc/magma/actions/remote_job@main
         if: ${{ contains(fromJson('["install", "build", "ldconfig"]'), inputs.remote_job) }}
         with:
           job: ${{inputs.remote_job}}
@@ -188,7 +188,7 @@ jobs:
           echo "HASHED_NAME=$HASHED_NAME" >> "$GITHUB_ENV"
           echo "JOB_SSH_TUNNEL_COMMAND=ssh -N -L ${{ env.PORT2 }}:${{ env.JOB_TUNNELS_PATH }}/${HASHED_NAME}-${{env.EXTRA_SOCKET}} -L ${{ env.PORT1 }}:${{ env.JOB_TUNNELS_PATH }}/${HASHED_NAME}-${{env.JUPYTER_SOCKET}} ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}" >> $GITHUB_ENV
       
-      - uses: langtech-bsc/magma/actions/addons@41-install-python-and-apt-packages-in-sandbox
+      - uses: langtech-bsc/magma/actions/addons@main
         with:
           file: "src/launch.sh"
           jupyter: ${{ env.JOB_ENABLE_JUPYTER }}
@@ -225,7 +225,7 @@ jobs:
       
       - name: Setup mlflow
         id: mlflow
-        uses: langtech-bsc/magma/actions/mlflow@41-install-python-and-apt-packages-in-sandbox
+        uses: langtech-bsc/magma/actions/mlflow@main
         with:
           experiment_name: ${GITHUB_REPOSITORY#$GITHUB_REPOSITORY_OWNER/}
           remote_host: ${{ secrets.REMOTE_HOST }}

@@ -10,16 +10,15 @@ on:
 
 jobs:
   pre-job:
-    uses: langtech-bsc/magma/.github/workflows/pre_job_per_branch.yml@41-install-python-and-apt-packages-in-sandbox
+    uses: langtech-bsc/magma/.github/workflows/pre_job_per_branch.yml@main
     secrets: inherit
     with:
       runs_on: ${{inputs.runs_on}}
       check_running_job: true
 
   docker2tar:
-    if: ${{contains(fromJson('["true", true]'), needs.pre-job.outputs.create_singularity) }}
     needs:  pre-job
-    uses: langtech-bsc/magma/.github/workflows/docker2tar.yml@41-install-python-and-apt-packages-in-sandbox
+    uses: langtech-bsc/magma/.github/workflows/docker2tar.yml@main
     secrets: inherit
     with:
       image: ${{needs.pre-job.outputs.branch}}
@@ -27,11 +26,11 @@ jobs:
 
   build:
     needs:  [pre-job, docker2tar]
-    uses: langtech-bsc/magma/.github/workflows/launch_job.yml@41-install-python-and-apt-packages-in-sandbox
+    uses: langtech-bsc/magma/.github/workflows/launch_job.yml@main
     secrets: inherit
     with:
       job_path: ${{ needs.pre-job.outputs.job_path }}/build
       job_name: ${{ needs.pre-job.outputs.job_name }}
       singularity: ${{ needs.pre-job.outputs.branch }}
       remote_job: "build"
-      remote_job_sandbox: ${{needs.pre-job.outputs.sandbox}}
+      remote_job_sandbox: false
