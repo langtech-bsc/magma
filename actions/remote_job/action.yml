@@ -254,13 +254,17 @@ runs:
         docker image rm user/${NAME}:latest
       
         echo "Push docker tar file to ${{inputs.remote_path}}"
+        echo "Create dir"
         ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}} 2>/dev/null "umask 007 && mkdir -p ${{inputs.remote_path}}"
-        
+
+        echo "Push Docker"
         scp ${{ steps.globals.outputs.SSH_OPTIONS }} ${NAME}.tar ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }}  2>/dev/null
         # scp ${{ steps.globals.outputs.SSH_OPTIONS }} [Dd]ocker[Ff]ile ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }}  2>/dev/null
         
         # ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}}  2>/dev/null "chmod 660 -r ${{ inputs.remote_path }}"
+        echo "Remove tar"
         rm ${NAME}.tar
+        echo "Done."
 
 
         
