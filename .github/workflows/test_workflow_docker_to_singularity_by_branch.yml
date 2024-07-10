@@ -1,0 +1,10 @@
+name: Test workflow docker to singularity by branch
+run-name: ${{ github.actor }} is executing Test workflow docker2tar 🚀
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-workflow-docker-to-singularity-by-branch:
+    uses: ./.github/workflows/docker_to_singularity_by_branch.yml
+    secrets: inherit

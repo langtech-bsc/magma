@@ -1,1 +1,1 @@
-echo "Launching jupyter lab"
+echo "Launching VLM"

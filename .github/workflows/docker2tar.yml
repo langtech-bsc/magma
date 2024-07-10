@@ -1,0 +1,31 @@
+name: Build docker to .tar
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        required: false
+        type: string
+        default: shell    
+      image:
+        required: true
+        type: string
+      path:
+        required: true
+        type: string
+
+jobs:
+  docker2trar:
+    timeout-minutes: 43200
+    runs-on: ${{ inputs.runs_on }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: langtech-bsc/magma/actions/remote_job@main
+        with:
+          job: 'docker2tar'
+          image: ${{ inputs.image }}
+          remote_path: /gpfs/scratch/${{ secrets.REMOTE_GROUP }}/${{ secrets.REMOTE_USER }}/jobs/${{ inputs.path }}
+          remote_user: ${{ secrets.REMOTE_USER}}
+          remote_host: ${{ secrets.REMOTE_HOST }}
+          ssh_secret_key: ${{ secrets.SSH_PRIVATE_KEY }}
+

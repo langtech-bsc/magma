@@ -1,0 +1,10 @@
+name: Test workflow docker2tar
+run-name: ${{ github.actor }} is executing Test workflow docker2tar 🚀
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-workflow-enhanced-launch-job-and-docker:
+    uses: ./.github/workflows/enhanced_launch_job_and_docker.yml
+    secrets: inherit

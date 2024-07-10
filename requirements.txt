@@ -1,0 +1,6 @@
+python-dotenv
+flask
+django==3.2.7
+pytest
+# scikit-learn==0.24.2
+# jupyter

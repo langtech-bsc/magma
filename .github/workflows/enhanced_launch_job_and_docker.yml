@@ -1,0 +1,97 @@
+name: Enhanced Launch job and docker
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        required: false
+        type: string
+        default: magma-runner-set
+
+jobs:
+  pre-job:
+    uses: langtech-bsc/magma/.github/workflows/pre_job_per_branch.yml@main
+    secrets: inherit
+    with:
+      runs_on: ${{inputs.runs_on}}
+      check_running_job: true
+
+  docker2tar:
+    if: ${{contains(fromJson('["true", true]'), needs.pre-job.outputs.create_singularity) }}
+    needs:  pre-job
+    uses: langtech-bsc/magma/.github/workflows/docker2tar.yml@main
+    secrets: inherit
+    with:
+      image: ${{needs.pre-job.outputs.singularity}}
+      path: ${{ needs.pre-job.outputs.job_path }}/build
+
+  build:
+    needs:  [pre-job, docker2tar]
+    uses: langtech-bsc/magma/.github/workflows/launch_job.yml@main
+    secrets: inherit
+    with:
+      job_path: ${{ needs.pre-job.outputs.job_path }}/build
+      job_name: ${{ needs.pre-job.outputs.job_name }}
+      singularity: ${{ needs.pre-job.outputs.singularity }}
+      remote_job: "build"
+      remote_job_sandbox: ${{needs.pre-job.outputs.sandbox}}
+
+  install:
+    if: |
+      always() &&
+      needs.pre-job.result == 'success' &&
+      contains(fromJson('["true", true]'), needs.pre-job.outputs.install_reqs) &&
+      (needs.docker2tar.result == 'success' || needs.docker2tar.result == 'skipped') &&
+      (needs.build.result == 'success' || needs.build.result == 'skipped') 
+
+    needs:  [pre-job, docker2tar, build]
+    uses: langtech-bsc/magma/.github/workflows/install_requirements_online.yml@main
+    secrets: inherit
+    with:
+      job_path: ${{ needs.pre-job.outputs.job_path }}/install
+      job_name: ${{ needs.pre-job.outputs.job_name }}
+      image: ${{ needs.pre-job.outputs.singularity }}
+      old_image: ${{ needs.pre-job.outputs.old_image }}
+      remote_job: "install-online"
+
+  # install:
+  #   if: |
+  #     always() &&
+  #     needs.pre-job.result == 'success' &&
+  #     contains(fromJson('["true", true]'), needs.pre-job.outputs.install_reqs) &&
+  #     (needs.docker2tar.result == 'success' || needs.docker2tar.result == 'skipped') &&
+  #     (needs.build.result == 'success' || needs.build.result == 'skipped') 
+
+  #   needs:  [pre-job, docker2tar, build]
+  #   uses: langtech-bsc/magma/.github/workflows/launch_job.yml@main
+  #   secrets: inherit
+  #   with:
+  #     job_path: ${{ needs.pre-job.outputs.job_path }}/install
+  #     job_name: ${{ needs.pre-job.outputs.job_name }}
+  #     singularity: ${{ needs.pre-job.outputs.singularity }}
+  #     old_image: ${{ needs.pre-job.outputs.old_image }}
+  #     remote_job: "install"
+
+  launch-job:
+      if: |
+          always() &&
+          needs.pre-job.result == 'success' && 
+          (needs.docker2tar.result == 'success' || needs.docker2tar.result == 'skipped') &&
+          (needs.build.result == 'success' || needs.build.result == 'skipped') && 
+          (needs.install.result == 'success' || needs.install.result == 'skipped')
+
+      needs: [pre-job, docker2tar, build, install]
+      uses: langtech-bsc/magma/.github/workflows/launch_job.yml@main
+      secrets: inherit
+      with:
+        runs_on: ${{ inputs.runs_on }}
+        job_path: ${{ needs.pre-job.outputs.job_path }}
+        job_name: ${{ needs.pre-job.outputs.job_name }}
+        enable_tunnel: ${{ fromJson(needs.pre-job.outputs.enable_tunnel) }}
+        enable_jupyter: ${{ fromJson(needs.pre-job.outputs.enable_jupyter) }}
+        jupyter_singularity: ${{ needs.pre-job.outputs.jupyter_singularity }}
+        enable_tgi: ${{ fromJson(needs.pre-job.outputs.enable_tgi) }}
+        tgi_singularity: ${{ needs.pre-job.outputs.tgi_singularity }}
+        tgi_model: ${{ needs.pre-job.outputs.tgi_model }}
+        tgi_params: ${{ needs.pre-job.outputs.tgi_params }}
+        singularity: ${{ needs.pre-job.outputs.singularity }}

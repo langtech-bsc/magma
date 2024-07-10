@@ -11,6 +11,15 @@ tgi: # Text generation inference
   model: Mistral-7B-Instruct-v0.3 # The model must exists in $GPFS_MODEL_REGISTRY_PATH.
   params: --max-input-length 8000 --max-batch-prefill-tokens 8000 --max-total-tokens 12000 # Must be valid parameters, otherwise tgi will throw an error
 
-# Uncomment to get access to custom image from $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH.
-# You will have access to this image through $JOB_SINGULARITY_IMAGE env variable. 
-# singularity: my-custom-image.sif
+
+# Enable singularity get access to custom image from $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH.
+# You will have access to this image through $JOB_SINGULARITY_IMAGE env variable.
+
+singularity:
+  enable: true # Default false. 
+  # name: my-custom-image.sif # Default: <repo>/<branch>. For current or another <repo>/<branch> do not add .sif.
+  sandbox: false # Default: false. Only needed while creating, it will save image as a sandbox if true, otherwise as a singularity.
+
+# Following conditions only applies if the name of singularity (name:) is equal to current <repo>/<branch> and matches the current repo, branch.
+  # If the image does not exists or is a old version , it will create new image from the dockerfile you have in your repository.
+  # If already exists, will install all requirements from requirement.txt.

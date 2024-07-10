@@ -1,32 +1,28 @@
-#===========Workflows========================
+# Variables
+ACT_CMD = act
+COMMON_FLAGS = --secret-file my.secrets \
+               --var-file .env \
+               --no-cache-server \
+               --container-architecture linux/amd64 \
+               --pull=true \
+               -P magma-runner-set=projecteaina/actions-runner:latest \
+               -P shell=catthehacker/ubuntu:act-22.04
 
 
-#===========TEST workflows===================
-run-gh-run-test-workflow-job-enhanced-launch-job:
-	act -j test-workflow-job-enhanced-launch-job \
-	 -W .github/workflows/test_workflow_enhanced_launch_job.yml \
-	 --secret-file my.secrets \
-	 --var-file .env \
-	 --no-cache-server \
-	 --container-architecture linux/amd64 \
-	 --pull=true -P magma-runner-set=projecteaina/actions-runner:latest
+test-workflow-enhanced-launch-job:
+	$(ACT_CMD) -j test-workflow-enhanced-launch-job -W .github/workflows/test_workflow_enhanced_launch_job.yml $(COMMON_FLAGS)
 
+test-workflow-enhanced-launch-job-and-docker:
+	$(ACT_CMD) -j test-workflow-enhanced-launch-job-and-docker -W .github/workflows/test_workflow_enhanced_launch_job_and_docker.yml $(COMMON_FLAGS)
 
-run-gh-run-test-workflow-job-launch-job:
-	act -j test-workflow-job-launch-job \
-	 -W .github/workflows/test_workflow_launch_job.yml \
-	 --secret-file my.secrets \
-	 --var-file .env \
-	 --no-cache-server \
-	 --container-architecture linux/amd64 \
-	 --pull=true -P magma-runner-set=projecteaina/actions-runner:latest
+test-workflow-launch-job:
+	$(ACT_CMD) -j test-workflow-launch-job -W .github/workflows/test_workflow_launch_job.yml $(COMMON_FLAGS)
 
-#===========TEST actions===================
-run-gh-run-test-action-addons:
-	act -j test-action-addons \
-	 -W .github/workflows/test_action_addons.yml \
-	 --secret-file my.secrets \
-	 --var-file .env \
-	 --no-cache-server \
-	 --container-architecture linux/amd64 \
-	 --pull=true -P magma-runner-set=projecteaina/actions-runner:latest
+test-workflow-remote-job:
+	$(ACT_CMD) -j complete -W .github/workflows/test_workflow_remote_job.yml $(COMMON_FLAGS)
+
+test-action-addons:
+	$(ACT_CMD) -j test-action-addons -W .github/workflows/test_action_addons.yml $(COMMON_FLAGS)
+
+test-workflow-docker-to-singularity-by-branch:
+	$(ACT_CMD) -j test-workflow-docker-to-singularity-by-branch -W .github/workflows/test_workflow_docker_to_singularity_by_branch.yml $(COMMON_FLAGS)
