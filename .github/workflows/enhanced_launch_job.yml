@@ -10,7 +10,7 @@ on:
       
 jobs:
   pre-job:
-    uses: langtech-bsc/magma/.github/workflows/pre_job_per_branch.yml@main
+    uses: langtech-bsc/magma/.github/workflows/pre_job_per_branch.yml@41-install-python-and-apt-packages-in-sandbox
     secrets: inherit
     with:
       runs_on: ${{inputs.runs_on}}
@@ -18,7 +18,7 @@ jobs:
 
   launch-job:
       needs: pre-job
-      uses: langtech-bsc/magma/.github/workflows/launch_job.yml@main
+      uses: langtech-bsc/magma/.github/workflows/launch_job.yml@41-install-python-and-apt-packages-in-sandbox
       secrets: inherit
       with:
         runs_on: ${{ inputs.runs_on }}

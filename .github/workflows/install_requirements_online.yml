@@ -23,7 +23,7 @@ jobs:
     runs-on: ${{ inputs.runs_on }}
     steps:
       - uses: actions/checkout@v4
-      - uses: langtech-bsc/magma/actions/remote_job@main
+      - uses: langtech-bsc/magma/actions/remote_job@41-install-python-and-apt-packages-in-sandbox
         with:
           job: 'install-online'
           remote_singularity_registry_path: ${{ vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH }}

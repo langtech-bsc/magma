@@ -24,5 +24,5 @@ test-workflow-remote-job:
 test-action-addons:
 	$(ACT_CMD) -j test-action-addons -W .github/workflows/test_action_addons.yml $(COMMON_FLAGS)
 
-test-action-install-python-apt-singularity:
-	$(ACT_CMD) -j test-action-install-python-apt-singularity -W .github/workflows/test_action_install-python-apt-singularity.yml $(COMMON_FLAGS)
+test-workflow-docker-to-singularity-by-branch:
+	$(ACT_CMD) -j test-workflow-docker-to-singularity-by-branch -W .github/workflows/test_workflow_docker_to_singularity_by_branch.yml $(COMMON_FLAGS)
