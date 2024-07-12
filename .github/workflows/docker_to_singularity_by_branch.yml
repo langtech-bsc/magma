@@ -1,4 +1,4 @@
-name: Docker to singularity y branch
+name: Docker to singularity by branch name
 
 on:
   workflow_call:
