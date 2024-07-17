@@ -51,7 +51,11 @@ inputs:
     description: "File where to set changes"
     required: false
     default: 'src' 
-
+  
+  ldconfig:
+    description: "Enable ldconfig"
+    required: false
+    default: false
 
 runs:
   using: "composite"
@@ -66,6 +70,7 @@ runs:
         echo "old_image: ${{inputs.old_image}}"
         echo "remote_singularity_registry_path: ${{inputs.remote_singularity_registry_path}}"
         echo "remote_path: ${{inputs.remote_path}}"
+        echo "ldconfig: ${{inputs.ldconfig}}"
 
         echo "SSH_OPTIONS=-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" >> "${GITHUB_OUTPUT}"
         echo "ENV_FILE=remote_job.env" >> "${GITHUB_OUTPUT}"
@@ -99,6 +104,7 @@ runs:
         echo "${{ steps.globals.outputs.ENV_PREFIX }}_PATH=${{inputs.remote_singularity_registry_path}}" >> "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
         echo "${{ steps.globals.outputs.ENV_PREFIX }}_DOCKER_TAR_PATH=${{inputs.remote_path}}" >> "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
         echo "${{ steps.globals.outputs.ENV_PREFIX }}_SANDBOX=${{inputs.sandbox}}" >> "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
+        echo "${{ steps.globals.outputs.ENV_PREFIX }}_LDCONFIG=${{inputs.ldconfig}}" >> "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
 
     - name: On install
       if: ${{ contains(fromJson('["install"]'), inputs.job )}}

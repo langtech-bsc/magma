@@ -17,6 +17,7 @@ IMAGE=$(echo "$REMOTE_JOB_IMAGE" | sed 's/req_.*/req_null/')
 DOCKER_TAR_PATH=$REMOTE_JOB_DOCKER_TAR_PATH
 SANDBOX=$REMOTE_JOB_SANDBOX
 TAR_NAME=$(echo $REMOTE_JOB_IMAGE | sed 's/\//_/g')
+LDCONFIG=$REMOTE_JOB_LDCONFIG
 
 module load singularity
 
@@ -36,8 +37,18 @@ if [[ "$IMAGE" == */* ]]; then  # Check if string contains at least one slash
     mkdir -p $result
 fi
 
-
-if [ "$SANDBOX" = "true" ]; then
+if ["$LDCONFIG" = "true"]; then
+    echo "LDCONFIG..."
+    singularity build -F -s ${TAR_NAME}_sandbox docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
+    singularity exec --nv --writable -B /apps ${TAR_NAME}_sandbox ldconfig /.singularity.d/libs
+    if [ "$SANDBOX" = "true" ]; then
+        mv ${TAR_NAME}_sandbox $TAR_NAME
+    else
+        singularity build -F $TAR_NAME ${TAR_NAME}_sandbox
+        rm ${TAR_NAME}_sandbox
+    fi
+    
+elif  [ "$SANDBOX" = "true" ]; then
     echo "Building sandbox"
     singularity build -F -s $TAR_NAME docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
 else
