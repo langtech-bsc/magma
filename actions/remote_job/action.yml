@@ -128,7 +128,7 @@ runs:
         virtualenv temp_env
         source temp_env/bin/activate
 
-        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "
+        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} "
           if [ -d \"${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }}\" ] || [ -f \"${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }}\" ]; then
             module load singularity
             if [ ! singularity inspect ${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }} >/dev/null 2>&1 ]; then
@@ -178,10 +178,10 @@ runs:
       shell: bash
       run: |
 
-        sandbox=$(ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} 2>/dev/null "
+        sandbox=$(ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} "
           if [ -d \"${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }}\" ] || [ -f \"${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }}\" ]; then
             module load singularity
-            if [ ! singularity inspect ${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }} 2>/dev/null ]; then
+            if [ ! singularity inspect ${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }}  ]; then
               echo 'The directory or file is not a singularity or sandbox'
               exit 1
             elif [ -d \"${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }}\" ]; then
@@ -261,13 +261,13 @@ runs:
       
         echo "Push docker tar file to ${{inputs.remote_path}}"
         echo "Create dir"
-        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}} 2>/dev/null "umask 007 && mkdir -p ${{inputs.remote_path}}"
+        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}} "umask 007 && mkdir -p ${{inputs.remote_path}}"
 
         echo "Push Docker"
-        scp ${{ steps.globals.outputs.SSH_OPTIONS }} ${NAME}.tar ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }}  2>/dev/null
-        # scp ${{ steps.globals.outputs.SSH_OPTIONS }} [Dd]ocker[Ff]ile ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }}  2>/dev/null
+        scp ${{ steps.globals.outputs.SSH_OPTIONS }} ${NAME}.tar ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }} 
+        # scp ${{ steps.globals.outputs.SSH_OPTIONS }} [Dd]ocker[Ff]ile ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }} 
         
-        # ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}}  2>/dev/null "chmod 660 -r ${{ inputs.remote_path }}"
+        # ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}}  "chmod 660 -r ${{ inputs.remote_path }}"
         echo "Remove tar"
         rm ${NAME}.tar
         echo "Done."
