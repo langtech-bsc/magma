@@ -6,7 +6,7 @@ on:
       runs_on:
         required: false
         type: string
-        default: magma-runner-set
+        default: shell-ssd
 
 jobs:
   pre-job:
