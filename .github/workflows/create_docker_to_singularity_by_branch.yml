@@ -22,6 +22,7 @@ jobs:
     uses: langtech-bsc/magma/.github/workflows/docker2tar.yml@main
     secrets: inherit
     with:
+      runs_on: 'shell-ssd'
       image: ${{needs.pre-job.outputs.singularity}}
       path: ${{ needs.pre-job.outputs.job_path }}/build
 
