@@ -40,7 +40,7 @@ on:
       enable_singularity:
         value: ${{jobs.pre-job-per-branch.outputs.enable_singularity}}
       sandbox:
-        value: ${{jobs.pre-job-per-branch.outputs.sandbox}}
+        value: ${{fromJson(jobs.pre-job-per-branch.outputs.sandbox)}}
       default_singularity:
         value: ${{jobs.pre-job-per-branch.outputs.default_singularity}}
       singularity:
