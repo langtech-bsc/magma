@@ -23,7 +23,7 @@ jobs:
     secrets: inherit
     with:
       runs_on: 'shell-ssd'
-      image: ${{needs.pre-job.outputs.singularity}}
+      image: ${{ needs.pre-job.outputs.job_name }}
       path: ${{ needs.pre-job.outputs.job_path }}/build
 
   build:
