@@ -82,7 +82,6 @@ jobs:
     env:
       PORT1: "8888"
       PORT2: "8080"
-      JOB_PATH: ${{ inputs.job_path }}
       JOB_NAME: ${{ inputs.job_name }}
       JOB_TUNNELS_PATH: /gpfs/scratch/${{ secrets.REMOTE_GROUP }}/${{ secrets.REMOTE_USER }}/tunnels
       JOB_SINGULARITY_IMAGE: ${{ vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH }}/${{ inputs.singularity }}
@@ -132,10 +131,10 @@ jobs:
             echo 'JOB_TGI_PARAMS="${{ inputs.tgi_params }}"' >> "$GITHUB_ENV"
           fi
 
-          if [ -z "${{ env.JOB_PATH }}" ]; then
+          if [ -z "${{ inputs.job_path }}" ]; then
             JOB_PATH_TMP="/gpfs/scratch/${{ secrets.REMOTE_GROUP }}/${{ secrets.REMOTE_USER }}/jobs/${JOB_REPO_NAME}/${{ github.run_number }}"
           else
-            JOB_PATH_TMP="/gpfs/scratch/${{ secrets.REMOTE_GROUP }}/${{ secrets.REMOTE_USER }}/jobs/${{env.JOB_PATH}}"
+            JOB_PATH_TMP="/gpfs/scratch/${{ secrets.REMOTE_GROUP }}/${{ secrets.REMOTE_USER }}/jobs/${{inputs.job_path}}"
           fi
 
           echo "JOB_PATH=$JOB_PATH_TMP" >> "$GITHUB_ENV"
