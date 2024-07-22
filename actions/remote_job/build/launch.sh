@@ -37,7 +37,7 @@ if [[ "$IMAGE" == */* ]]; then  # Check if string contains at least one slash
     mkdir -p $result
 fi
 
-if ["$LDCONFIG" = "true"]; then
+if [ "$LDCONFIG" = "true" ]; then
     echo "LDCONFIG..."
     singularity build -F -s ${TAR_NAME}_sandbox docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
     singularity exec --nv --writable -B /apps ${TAR_NAME}_sandbox ldconfig /.singularity.d/libs
