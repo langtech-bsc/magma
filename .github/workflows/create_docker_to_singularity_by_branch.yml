@@ -36,6 +36,7 @@ jobs:
       singularity: ${{ needs.pre-job.outputs.job_name }}
       remote_job: "build"
       remote_job_sandbox: ${{fromJson(needs.pre-job.outputs.sandbox)}}
+      remote_job_ldconfig: ${{fromJson(needs.pre-job.outputs.ldconfig)}}
 
   # install:
   #   if: |

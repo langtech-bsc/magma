@@ -73,7 +73,10 @@ on:
         type: boolean
         default: false
 
-      
+      remote_job_ldconfig:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   launch-job:
@@ -173,6 +176,7 @@ jobs:
           remote_singularity_registry_path: ${{env.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH}}
           image: ${{ inputs.singularity }}
           sandbox: ${{inputs.remote_job_sandbox}}
+          ldconfig: ${{inputs.remote_job_ldconfig}}
           remote_path: ${{env.JOB_PATH}}
           remote_user: ${{secrets.REMOTE_USER}}
           remote_host: ${{secrets.REMOTE_HOST}}
