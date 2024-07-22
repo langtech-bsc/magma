@@ -51,6 +51,8 @@ on:
         value: ${{jobs.pre-job-per-branch.outputs.create_singularity}}
       install_reqs:
         value: ${{jobs.pre-job-per-branch.outputs.install_reqs}}
+      ldconfig:
+        value: ${{jobs.pre-job-per-branch.outputs.ldconfig}}
 
 jobs:
   pre-job-per-branch:
@@ -76,6 +78,7 @@ jobs:
         old_image: ${{ steps.singularity.outputs.old_image}}
         create_singularity: ${{ steps.singularity.outputs.create_singularity}}
         install_reqs: ${{ steps.singularity.outputs.install_reqs}}
+        ldconfig: ${{ steps.set_defaults.outputs.ldconfig}}
 
       steps:
 
@@ -130,6 +133,7 @@ jobs:
           DEFAULT_ENABLE_TUNNEL: "false"
           DEFAULT_ENABLE_JUPYTER: "false"
           DEFAULT_JUPYTER_SINGULARITY: "python-jupyter.sif"
+          DEFAULT_SINGULARITY_LDCONFIG: "false"
           DEFAULT_ENABLE_TGI: "false"
           DEFAULT_TGI_SINGULARITY: "text-generation-inference.singularity.1.4.4.sif"
           DEFAULT_TGI_MODEL: "Mixtral-8x7B-Instruct-v0.1"
@@ -156,6 +160,13 @@ jobs:
             echo "jupyter_singularity=${{ env.DEFAULT_JUPYTER_SINGULARITY }}" >> $GITHUB_OUTPUT
           else
             echo "jupyter_singularity=${{ steps.yaml.outputs.jupyter_singularity }}" >> $GITHUB_OUTPUT
+          fi
+
+          # Set default for singularity.ldconfig
+          if [ -z "${{ steps.yaml.outputs.singularity_ldconfig }}" ]; then
+            echo "ldconfig=${{ env.DEFAULT_SINGULARITY_LDCONFIG }}" >> $GITHUB_OUTPUT
+          else
+            echo "ldconfig=${{ steps.yaml.outputs.singularity_ldconfig }}" >> $GITHUB_OUTPUT
           fi
 
           # Set default for tgi.enable
