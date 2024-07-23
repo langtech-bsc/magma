@@ -138,9 +138,13 @@ jobs:
           DEFAULT_JUPYTER_SINGULARITY: "python-jupyter.sif"
           DEFAULT_SINGULARITY_LDCONFIG: "false"
           DEFAULT_ENABLE_TGI: "false"
-          DEFAULT_ENABLE_VLLM: "false"
           DEFAULT_TGI_SINGULARITY: "text-generation-inference.singularity.1.4.4.sif"
           DEFAULT_TGI_MODEL: "Mixtral-8x7B-Instruct-v0.1"
+          
+          DEFAULT_ENABLE_VLLM: "false"
+          DEFAULT_VLLM_SINGULARITY: "text-generation-inference.singularity.1.4.4.sif"
+          DEFAULT_VLLM_MODEL: "Mixtral-8x7B-Instruct-v0.1"
+
           CURRENT_REPO_BRANCH: "${{ steps.job_variables.outputs.repo_branch }}"
 
         run: |
@@ -174,7 +178,6 @@ jobs:
           fi
 
           # Set default for tgi.enable
-          echo "${{steps.yaml.outputs.tgi_enable }}"
           if [ -z "${{ steps.yaml.outputs.tgi_enable }}" ]; then
             echo "enable_tgi=${{ env.DEFAULT_ENABLE_TGI }}" >> $GITHUB_OUTPUT
           else
@@ -195,12 +198,32 @@ jobs:
             echo "tgi_model=${{ steps.yaml.outputs.tgi_model }}" >> $GITHUB_OUTPUT
           fi
 
-          # Set default for tgi.vllm
-          if [ -z "${{ steps.yaml.outputs.tgi_vllm }}" ]; then
-            echo "tgi_vllm=${{ env.DEFAULT_ENABLE_VLLM }}" >> $GITHUB_OUTPUT
+          # Set tgi params
+          echo "tgi_params=${{ steps.yaml.outputs.tgi_params }}" >> $GITHUB_OUTPUT
+
+          # Set default for vllm.enable
+          if [ -z "${{ steps.yaml.outputs.vllm_enable }}" ]; then
+          echo "enable_vllm=${{ env.DEFAULT_ENABLE_VLLM }}" >> $GITHUB_OUTPUT
           else
-            echo "tgi_vllm=${{ steps.yaml.outputs.tgi_vllm }}" >> $GITHUB_OUTPUT
+          echo "enable_vllm=${{ steps.yaml.outputs.vllm_enable }}" >> $GITHUB_OUTPUT
           fi
+
+          # Set default for vllm.singularity
+          if [ -z "${{ steps.yaml.outputs.vllm_singularity }}" ]; then
+          echo "vllm_singularity=${{ env.DEFAULT_VLLM_SINGULARITY }}" >> $GITHUB_OUTPUT
+          else
+          echo "vllm_singularity=${{ steps.yaml.outputs.vllm_singularity }}" >> $GITHUB_OUTPUT
+          fi
+
+          # Set default for vllm.model
+          if [ -z "${{ steps.yaml.outputs.vllm_model }}" ]; then
+          echo "vllm_model=${{ env.DEFAULT_VLLM_MODEL }}" >> $GITHUB_OUTPUT
+          else
+          echo "vllm_model=${{ steps.yaml.outputs.vllm_model }}" >> $GITHUB_OUTPUT
+          fi
+
+          # Set vllm params
+          echo "vllm_params=${{ steps.yaml.outputs.vllm_params }}" >> $GITHUB_OUTPUT
 
           # Set default for singularity
           if [ "${{ steps.yaml.outputs.singularity_enable }}" = "true" ]; then
@@ -230,8 +253,7 @@ jobs:
           # Set singularity
           echo "singularity=${SINGULARITY}" >> $GITHUB_OUTPUT
 
-          # Set tgi params
-          echo "tgi_params=${{ steps.yaml.outputs.tgi_params }}" >> $GITHUB_OUTPUT
+          
 
       - name: Get singularity
         id: singularity
@@ -313,18 +335,29 @@ jobs:
           echo "enable_tunnel: ${{ steps.set_defaults.outputs.enable_tunnel }}"
           echo "enable_jupyter: ${{ steps.set_defaults.outputs.enable_jupyter }}"
           echo "jupyter_singularity: ${{ steps.set_defaults.outputs.jupyter_singularity }}"
+
           echo "enable_tgi: ${{ steps.set_defaults.outputs.enable_tgi }}"
           echo "tgi_singularity: ${{ steps.set_defaults.outputs.tgi_singularity }}"
           echo "tgi_model: ${{ steps.set_defaults.outputs.tgi_model }}"
           echo "tgi_params: ${{ steps.set_defaults.outputs.tgi_params }}"
+
+          echo "enable_vllm: ${{ steps.set_defaults.outputs.enable_vllm }}"
+          echo "vllm_singularity: ${{ steps.set_defaults.outputs.vllm_singularity }}"
+          echo "vllm_model: ${{ steps.set_defaults.outputs.vllm_model }}"
+          echo "vllm_params: ${{ steps.set_defaults.outputs.vllm_params }}"
+
           echo "singularity: ${{ steps.set_defaults.outputs.singularity }}"
           echo "default_singularity: ${{ steps.set_defaults.outputs.default_singularity }}"
-          echo "tgi_vllm: ${{ steps.set_defaults.outputs.tgi_vllm }}"
           echo "sandbox: ${{ steps.set_defaults.outputs.sandbox }}"
           echo "singularity: ${{ steps.singularity.outputs.singularity }}"
           echo "old_image: ${{ steps.singularity.outputs.old_image }}"
           echo "create_singularity: ${{ steps.singularity.outputs.create_singularity }}"
           echo "install_reqs: ${{ steps.singularity.outputs.install_reqs }}"
           
+      - name: Check vllm and tgi enable
+        if: ${{contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_vllm ) && contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_tgi )}}
+        run: |
+          echo "Enabling both tgi and vllm is incompatible, please enable only one."
+          exit 1
           
           

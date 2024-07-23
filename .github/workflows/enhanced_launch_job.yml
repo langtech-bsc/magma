@@ -10,7 +10,7 @@ on:
       
 jobs:
   pre-job:
-    uses: langtech-bsc/magma/.github/workflows/pre_job_per_branch.yml@main
+    uses: ./.github/workflows/pre_job_per_branch.yml
     secrets: inherit
     with:
       runs_on: ${{inputs.runs_on}}
@@ -28,8 +28,13 @@ jobs:
         enable_jupyter: ${{ fromJson(needs.pre-job.outputs.enable_jupyter) }}
         jupyter_singularity: ${{ needs.pre-job.outputs.jupyter_singularity }}
         enable_tgi: ${{ fromJson(needs.pre-job.outputs.enable_tgi) }}
-        vllm: ${{ fromJson(needs.pre-job.outputs.tgi_vllm) }}
         tgi_singularity: ${{ needs.pre-job.outputs.tgi_singularity }}
         tgi_model: ${{ needs.pre-job.outputs.tgi_model }}
         tgi_params: ${{ needs.pre-job.outputs.tgi_params }}
+
+        enable_vllm: ${{ fromJson(needs.pre-job.outputs.enable_vllm) }}
+        vllm_singularity: ${{ needs.pre-job.outputs.vllm_singularity }}
+        vllm_model: ${{ needs.pre-job.outputs.vllm_model }}
+        vllm_params: ${{ needs.pre-job.outputs.vllm_params }}
+
         singularity: ${{ needs.pre-job.outputs.singularity }}

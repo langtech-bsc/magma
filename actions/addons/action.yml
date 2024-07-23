@@ -17,8 +17,8 @@ inputs:
     required: false
     default: false
 
-  vlm:
-    description: "Inject vlm"
+  vllm:
+    description: "Inject vllm"
     required: false
     default: false
 
@@ -74,15 +74,14 @@ runs:
         echo "" >> file.tmp
         echo "Set tgi done."
 
-    - name: Set vlm
+    - name: Set vllm
       shell: bash
-      if: ${{ inputs.vlm == 'true' }}
+      if: ${{ inputs.vllm == 'true' }}
       run: |
         echo "" >> file.tmp
-        cat ${{ github.action_path }}/vlm.sh >> file.tmp
+        cat ${{ github.action_path }}/vllm.sh >> file.tmp
         echo "" >> file.tmp
-        echo "Set vlm done."
-
+        echo "Set vllm done."
 
     - name: Set last line
       shell: bash
