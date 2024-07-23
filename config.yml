@@ -8,9 +8,10 @@ jupyter:
 tgi: # Text generation inference
   enable: true # Default false.
   singularity: text-generation-inference.singularity.1.4.4.sif # The singularity image must exists in $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH.
+  singularity: vllm-inference.sif # The singularity image must exists in $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH.
   model: Mistral-7B-Instruct-v0.3 # The model must exists in $GPFS_MODEL_REGISTRY_PATH.
   # params: --max-input-length 8000 --max-batch-prefill-tokens 8000 --max-total-tokens 12000 # (TGI) Must be valid parameters, otherwise tgi will throw an error
-  params: --max-input-length 8000 --max-batch-prefill-tokens 8000 --max-total-tokens 12000 # (VLM) Must be valid parameters, otherwise tgi will throw an error
+  params: "" # (VLM) Must be valid parameters, otherwise tgi will throw an error
   vllm: true # If True uses vLLM api to deploy, otherwise text generation inferences. (Default: false)
 
 
