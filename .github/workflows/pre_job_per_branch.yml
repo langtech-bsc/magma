@@ -73,7 +73,12 @@ jobs:
         tgi_singularity: ${{ steps.set_defaults.outputs.tgi_singularity }}
         tgi_model: ${{ steps.set_defaults.outputs.tgi_model }}
         tgi_params: ${{ steps.set_defaults.outputs.tgi_params }}
-        tgi_vllm: ${{ steps.set_defaults.outputs.tgi_vllm }}
+
+        enable_vllm: ${{ steps.set_defaults.outputs.enable_vllm }}
+        vllm_singularity: ${{ steps.set_defaults.outputs.vllm_singularity }}
+        vllm_model: ${{ steps.set_defaults.outputs.vllm_model }}
+        vllm_params: ${{ steps.set_defaults.outputs.vllm_params }}
+
         enable_singularity: ${{ steps.set_defaults.outputs.enable_singularity}}
         sandbox: ${{ steps.set_defaults.outputs.sandbox}}
         default_singularity: ${{ steps.set_defaults.outputs.default_singularity}}

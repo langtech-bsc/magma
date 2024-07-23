@@ -36,5 +36,5 @@ jobs:
         vllm_singularity: ${{ needs.pre-job.outputs.vllm_singularity }}
         vllm_model: ${{ needs.pre-job.outputs.vllm_model }}
         vllm_params: ${{ needs.pre-job.outputs.vllm_params }}
-
+        
         singularity: ${{ needs.pre-job.outputs.singularity }}
