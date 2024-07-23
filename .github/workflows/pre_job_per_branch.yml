@@ -37,8 +37,16 @@ on:
         value: ${{jobs.pre-job-per-branch.outputs.tgi_model}}
       tgi_params:
         value: ${{jobs.pre-job-per-branch.outputs.tgi_params}}
-      tgi_vllm:
-        value: ${{jobs.pre-job-per-branch.outputs.tgi_vllm}}
+
+      enable_vllm:
+        value: ${{jobs.pre-job-per-branch.outputs.enable_vllm}}
+      vllm_singularity:
+        value: ${{jobs.pre-job-per-branch.outputs.vllm_singularity}}
+      vllm_model:
+        value: ${{jobs.pre-job-per-branch.outputs.vllm_model}}
+      vllm_params:
+        value: ${{jobs.pre-job-per-branch.outputs.vllm_params}}
+
       enable_singularity:
         value: ${{jobs.pre-job-per-branch.outputs.enable_singularity}}
       sandbox:
