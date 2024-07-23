@@ -63,6 +63,11 @@ on:
         type: string
         default: ''
 
+      vllm:
+        required: false
+        type: boolean
+        default: false
+
       remote_job:
         required: false
         type: string
@@ -94,6 +99,7 @@ jobs:
       JOB_TGI_ENABLE: ${{ inputs.enable_tgi }}
       GPFS_TGI_SINGULARITY: ${{ vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH }}/${{ inputs.tgi_singularity }}
       GPFS_TGI_MODEL: ${{ inputs.tgi_model }}
+      GPFS_VLLM: ${{ inputs.vllm }}
 
     steps:
       - uses: langtech-bsc/magma/actions/set_secrets_to_env_action@main

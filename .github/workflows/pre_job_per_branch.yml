@@ -37,6 +37,8 @@ on:
         value: ${{jobs.pre-job-per-branch.outputs.tgi_model}}
       tgi_params:
         value: ${{jobs.pre-job-per-branch.outputs.tgi_params}}
+      tgi_vllm:
+        value: ${{jobs.pre-job-per-branch.outputs.tgi_vllm}}
       enable_singularity:
         value: ${{jobs.pre-job-per-branch.outputs.enable_singularity}}
       sandbox:
@@ -71,6 +73,7 @@ jobs:
         tgi_singularity: ${{ steps.set_defaults.outputs.tgi_singularity }}
         tgi_model: ${{ steps.set_defaults.outputs.tgi_model }}
         tgi_params: ${{ steps.set_defaults.outputs.tgi_params }}
+        tgi_vllm: ${{ steps.set_defaults.outputs.tgi_vllm }}
         enable_singularity: ${{ steps.set_defaults.outputs.enable_singularity}}
         sandbox: ${{ steps.set_defaults.outputs.sandbox}}
         default_singularity: ${{ steps.set_defaults.outputs.default_singularity}}
@@ -135,6 +138,7 @@ jobs:
           DEFAULT_JUPYTER_SINGULARITY: "python-jupyter.sif"
           DEFAULT_SINGULARITY_LDCONFIG: "false"
           DEFAULT_ENABLE_TGI: "false"
+          DEFAULT_ENABLE_VLLM: "false"
           DEFAULT_TGI_SINGULARITY: "text-generation-inference.singularity.1.4.4.sif"
           DEFAULT_TGI_MODEL: "Mixtral-8x7B-Instruct-v0.1"
           CURRENT_REPO_BRANCH: "${{ steps.job_variables.outputs.repo_branch }}"
@@ -170,6 +174,7 @@ jobs:
           fi
 
           # Set default for tgi.enable
+          echo "${{steps.yaml.outputs.tgi_enable }}"
           if [ -z "${{ steps.yaml.outputs.tgi_enable }}" ]; then
             echo "enable_tgi=${{ env.DEFAULT_ENABLE_TGI }}" >> $GITHUB_OUTPUT
           else
@@ -188,6 +193,13 @@ jobs:
             echo "tgi_model=${{ env.DEFAULT_TGI_MODEL }}" >> $GITHUB_OUTPUT
           else
             echo "tgi_model=${{ steps.yaml.outputs.tgi_model }}" >> $GITHUB_OUTPUT
+          fi
+
+          # Set default for tgi.vllm
+          if [ -z "${{ steps.yaml.outputs.tgi_vllm }}" ]; then
+            echo "tgi_vllm=${{ env.DEFAULT_ENABLE_VLLM }}" >> $GITHUB_OUTPUT
+          else
+            echo "tgi_vllm=${{ steps.yaml.outputs.tgi_vllm }}" >> $GITHUB_OUTPUT
           fi
 
           # Set default for singularity
@@ -307,12 +319,12 @@ jobs:
           echo "tgi_params: ${{ steps.set_defaults.outputs.tgi_params }}"
           echo "singularity: ${{ steps.set_defaults.outputs.singularity }}"
           echo "default_singularity: ${{ steps.set_defaults.outputs.default_singularity }}"
+          echo "tgi_vllm: ${{ steps.set_defaults.outputs.tgi_vllm }}"
           echo "sandbox: ${{ steps.set_defaults.outputs.sandbox }}"
           echo "singularity: ${{ steps.singularity.outputs.singularity }}"
           echo "old_image: ${{ steps.singularity.outputs.old_image }}"
           echo "create_singularity: ${{ steps.singularity.outputs.create_singularity }}"
           echo "install_reqs: ${{ steps.singularity.outputs.install_reqs }}"
-          
           
           
           
