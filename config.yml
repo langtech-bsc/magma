@@ -16,7 +16,7 @@ vllm: # VLLM api
   enable: true # Default false.
   model: Mistral-7B-Instruct-v0.3 # The model must exists in $GPFS_MODEL_REGISTRY_PATH.
   singularity: vllm-inference.sif # The singularity image must exists in $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH.
-  params: test # (VLM) Must be valid parameters, otherwise tgi will throw an error
+  params: "" # (VLM) Must be valid parameters, otherwise tgi will throw an error
              
       
 

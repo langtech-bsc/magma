@@ -233,7 +233,7 @@ jobs:
           file: "src/launch.sh"
           jupyter: ${{ env.JOB_ENABLE_JUPYTER }}
           tgi: ${{ env.JOB_TGI_ENABLE }}
-          vllm: ${{ env.JOB_TGI_ENABLE }}
+          vllm: ${{ env.JOB_VLLM_ENABLE }}
           sleep: ${{ env.JOB_SLEEP }}
 
       - name: Pre launch modifications
