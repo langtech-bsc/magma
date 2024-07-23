@@ -46,7 +46,7 @@ if [ "$LDCONFIG" = "true" ]; then
         mv ${TAR_NAME}_sandbox $TAR_NAME
     else
         singularity build -F $TAR_NAME ${TAR_NAME}_sandbox
-        rm ${TAR_NAME}_sandbox
+        rm -rf ${TAR_NAME}_sandbox
     fi
     
 elif  [ "$SANDBOX" = "true" ]; then
