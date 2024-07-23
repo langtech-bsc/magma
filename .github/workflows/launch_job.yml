@@ -116,8 +116,8 @@ jobs:
       GPFS_TGI_MODEL: ${{ inputs.tgi_model }}
 
       JOB_VLLM_ENABLE: ${{ inputs.enable_vllm }}
-      GPFS_VLM_SINGULARITY: ${{ vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH }}/${{ inputs.vllm_singularity }}
-      GPFS_VLM_MODEL: ${{ inputs.vllm_params }}
+      GPFS_VLLM_SINGULARITY: ${{ vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH }}/${{ inputs.vllm_singularity }}
+      GPFS_VLLM_MODEL: ${{ inputs.vllm_params }}
 
     steps:
       - uses: langtech-bsc/magma/actions/set_secrets_to_env_action@main
@@ -181,9 +181,17 @@ jobs:
           echo "JOB_ENABLE_TUNNEL: ${{env.JOB_ENABLE_TUNNEL}}"
           echo "JOB_ENABLE_JUPYTER: ${{env.JOB_ENABLE_JUPYTER}}"
           echo "GPFS_JUPYTER_SINGULARITY: ${{env.GPFS_JUPYTER_SINGULARITY}}"
+          echo ""
           echo "JOB_TGI_ENABLE: ${{env.JOB_TGI_ENABLE}}"
           echo "GPFS_TGI_SINGULARITY: ${{env.GPFS_TGI_SINGULARITY}}"
           echo "GPFS_TGI_MODEL: ${{env.GPFS_TGI_MODEL}}"
+          echo "JOB_TGI_PARAMS: ${{env.JOB_TGI_PARAMS}}"
+          echo ""
+          echo "JOB_TGI_ENABLE: ${{env.JOB_VLLM_ENABLE}}"
+          echo "GPFS_TGI_SINGULARITY: ${{env.GPFS_VLLM_SINGULARITY}}"
+          echo "GPFS_TGI_MODEL: ${{env.GPFS_VLLM_MODEL}}"
+          echo "GPFS_TGI_MODEL: ${{env.GPFS_VLLM_PARAMS}}"
+          echo ""
           echo "JOB_SLEEP: ${{env.JOB_SLEEP}}"
           echo "REMOTE_JOB: ${{inputs.remote_job}}"
 
