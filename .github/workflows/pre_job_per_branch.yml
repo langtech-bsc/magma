@@ -335,17 +335,17 @@ jobs:
           echo "enable_tunnel: ${{ steps.set_defaults.outputs.enable_tunnel }}"
           echo "enable_jupyter: ${{ steps.set_defaults.outputs.enable_jupyter }}"
           echo "jupyter_singularity: ${{ steps.set_defaults.outputs.jupyter_singularity }}"
-
+          echo ""
           echo "enable_tgi: ${{ steps.set_defaults.outputs.enable_tgi }}"
           echo "tgi_singularity: ${{ steps.set_defaults.outputs.tgi_singularity }}"
           echo "tgi_model: ${{ steps.set_defaults.outputs.tgi_model }}"
           echo "tgi_params: ${{ steps.set_defaults.outputs.tgi_params }}"
-
+          echo ""
           echo "enable_vllm: ${{ steps.set_defaults.outputs.enable_vllm }}"
           echo "vllm_singularity: ${{ steps.set_defaults.outputs.vllm_singularity }}"
           echo "vllm_model: ${{ steps.set_defaults.outputs.vllm_model }}"
           echo "vllm_params: ${{ steps.set_defaults.outputs.vllm_params }}"
-
+          echo ""
           echo "singularity: ${{ steps.set_defaults.outputs.singularity }}"
           echo "default_singularity: ${{ steps.set_defaults.outputs.default_singularity }}"
           echo "sandbox: ${{ steps.set_defaults.outputs.sandbox }}"
