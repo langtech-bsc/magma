@@ -10,7 +10,7 @@ on:
       
 jobs:
   pre-job:
-    uses: ./.github/workflows/pre_job_per_branch.yml
+    uses: langtech-bsc/magma/.github/workflows/pre_job_per_branch.yml@main
     secrets: inherit
     with:
       runs_on: ${{inputs.runs_on}}
