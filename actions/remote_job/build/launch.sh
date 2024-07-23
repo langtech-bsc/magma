@@ -40,7 +40,8 @@ fi
 if [ "$LDCONFIG" = "true" ]; then
     echo "LDCONFIG..."
     singularity build -F -s ${TAR_NAME}_sandbox docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
-    singularity exec --nv --writable -B /apps ${TAR_NAME}_sandbox ldconfig /.singularity.d/libs
+    singularity exec -w ${TAR_NAME}_sandbox /bin/bash -c 'mkdir -p /apps'
+    singularity exec --writable -B /apps ${TAR_NAME}_sandbox ldconfig /.singularity.d/libs
     if [ "$SANDBOX" = "true" ]; then
         mv ${TAR_NAME}_sandbox $TAR_NAME
     else
