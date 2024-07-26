@@ -1,4 +1,6 @@
 **/.env
 my.secrets
 .vscode
+venv/
+test.py
 

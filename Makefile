@@ -26,3 +26,6 @@ test-action-addons:
 
 test-workflow-docker-to-singularity-by-branch:
 	$(ACT_CMD) -j test-workflow-docker-to-singularity-by-branch -W .github/workflows/test_workflow_docker_to_singularity_by_branch.yml $(COMMON_FLAGS)
+
+test-workflow-test:
+	$(ACT_CMD) -j test -W .github/workflows/test.yml $(COMMON_FLAGS)

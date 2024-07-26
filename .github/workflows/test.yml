@@ -1,0 +1,21 @@
+name: Test
+on:
+  workflow_call:
+    
+jobs:
+  test:
+    timeout-minutes: 43200
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Test clear terminal
+        run: |
+          echo "Text to clear"
+          echo "sleeping 1m"
+          sleep 1m
+          clear
+          echo "Done clear"
+
+
+
+         
