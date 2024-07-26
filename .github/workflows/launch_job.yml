@@ -345,6 +345,7 @@ jobs:
 
           (while true; do
             hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
+            echo ""
             echo "Check the logs at: ${{ steps.mlflow.outputs.artifact_url }}"
             sleep 1m
           done) &
