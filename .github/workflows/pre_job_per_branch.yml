@@ -380,7 +380,6 @@ jobs:
           echo "vllm_model: ${{ steps.set_defaults.outputs.vllm_model }}"
           echo "vllm_params: ${{ steps.set_defaults.outputs.vllm_params }}"
           echo ""
-          echo "singularity: ${{ steps.set_defaults.outputs.singularity }}"
           echo "default_singularity: ${{ steps.set_defaults.outputs.default_singularity }}"
           echo "sandbox: ${{ steps.set_defaults.outputs.sandbox }}"
           echo "singularity: ${{ steps.singularity.outputs.singularity }}"
