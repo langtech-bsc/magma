@@ -60,5 +60,5 @@ fi
 mv $TAR_NAME $IMAGES_PATH/$IMAGE
 chmod 770 -R $IMAGES_PATH/$IMAGE
 rm $DOCKER_TAR_PATH/$TAR_NAME.tar
-
+chown :$SLURM_JOB_ACCOUNT "$IMAGES_PATH/$IMAGE"
 echo "Image build done"
