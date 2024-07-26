@@ -272,11 +272,11 @@ jobs:
         id: singularity
         if: ${{contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_singularity) }}
         run: |
-          docker_file=$(ls [Dd]ocker[Ff]ile 2>/dev/null)
-          req_file=$(ls requirements.txt 2>/dev/null)
+          docker_file=$(ls [Dd]ocker[Ff]ile)
+          req_file=$(ls requirements.txt)
           
-          docker_sha=$(md5sum "$docker_file" 2>/dev/null | awk '{print $1}')
-          req_sha=$(md5sum "$req_file" 2>/dev/null | awk '{print $1}')
+          docker_sha=$(md5sum "$docker_file" | awk '{print $1}')
+          req_sha=$(md5sum "$req_file" | awk '{print $1}')
           
           docker_sha=${docker_sha:-null}
           req_sha=${req_sha:-null}
