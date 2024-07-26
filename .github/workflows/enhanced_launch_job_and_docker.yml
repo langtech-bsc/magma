@@ -49,10 +49,8 @@ jobs:
     secrets: inherit
     with:
       job_path: ${{ needs.pre-job.outputs.job_path }}/install
-      job_name: ${{ needs.pre-job.outputs.job_name }}
-      singularity: ${{ needs.pre-job.outputs.singularity }}
+      image: ${{ needs.pre-job.outputs.singularity }}
       old_image: ${{ needs.pre-job.outputs.old_image }}
-      remote_job: "install-online"
 
   # install:
   #   if: |
