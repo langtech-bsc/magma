@@ -274,7 +274,7 @@ jobs:
         run: |
           if [ "${{ steps.set_defaults.outputs.default_singularity }}" = "false" ]; then
             SING=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${{ secrets.remote_user }}@${{ secrets.remote_host }}"  \
-            "cd ${{vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH}} && ls -d ${{steps.set_defaults.outputs.singularity}}*" | head -n 1 || true)
+            "cd ${{vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH}} && ls -dt ${{steps.set_defaults.outputs.singularity}}*" | head -n 1 || true)
             
             if [ -z "$SING" ]; then
                 echo "Error: Singularity image does not exist and enable_singularity is set to true. Please check the name of singularity"
@@ -305,7 +305,7 @@ jobs:
             OLD_SING=null
             
             SING=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${{ secrets.remote_user }}@${{ secrets.remote_host }}" 2>/dev/null \
-            "cd ${{vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH}} && ls -d ${{steps.set_defaults.outputs.singularity}}:docker_${docker_sha}-req_${req_sha}*" | head -n 1 || true)
+            "cd ${{vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH}} && ls -dt ${{steps.set_defaults.outputs.singularity}}:docker_${docker_sha}-req_${req_sha}*" | head -n 1 || true)
             
             if [ -z "$SING" ]; then
               
