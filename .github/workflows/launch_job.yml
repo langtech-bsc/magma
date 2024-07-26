@@ -263,7 +263,7 @@ jobs:
           hpc-rocket launch rocket.yml 2>&1 | tee "$tempfile"
           output=$(cat "$tempfile")
           echo "SLURM_JOB_ID=$(echo "$output" | grep -oE 'job [0-9]+' | grep -oE '[0-9]+')" >> "$GITHUB_ENV"
-          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "chmod -R g-rw ${{ env.JOB_PATH }}"
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "chmod -R g+rw ${{ env.JOB_PATH }}"
       
       - name: Setup mlflow
         id: mlflow
