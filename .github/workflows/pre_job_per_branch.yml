@@ -272,11 +272,11 @@ jobs:
         id: singularity
         if: ${{contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_singularity) }}
         run: |
-          if [ "${{ steps.set_defaults.outputs.default_singularity }}" = "false" ] then
+          if [ "${{ steps.set_defaults.outputs.default_singularity }}" = "false" ]; then
             SING=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${{ secrets.remote_user }}@${{ secrets.remote_host }}"  \
             "cd ${{vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH}} && ls -d ${{steps.set_defaults.outputs.singularity}}*" | head -n 1 || true)
             
-            if [ -z "$SING" ] && ; then
+            if [ -z "$SING" ]; then
                 echo "Error: Singularity image does not exist and enable_singularity is set to true. Please check the name of singularity"
                 exit 1
             fi
