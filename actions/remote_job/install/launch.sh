@@ -65,4 +65,5 @@ fi
 
 # Move the new image to the images path
 mv "$TMP_IMAGE" "$IMAGES_PATH/$IMAGE"
+chown :$SLURM_JOB_ACCOUNT "$IMAGES_PATH/$IMAGE"
 # rm -rf "$REQUIREMENTS_PATH/requirements"
