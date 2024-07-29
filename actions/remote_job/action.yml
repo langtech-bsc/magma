@@ -182,7 +182,7 @@ runs:
       if: ${{ contains(fromJson('["install-online"]'), inputs.job ) }}
       shell: bash
       run: |
-
+        echo "Check if it's a sandbox"
         sandbox=$(ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} "
           if [ -d \"${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }}\" ] || [ -f \"${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }}\" ]; then
             module load singularity
@@ -202,6 +202,7 @@ runs:
         TMP_IMAGE="${{inputs.image}}"
         TMP_IMAGE="${TMP_IMAGE//\//_}_sandbox"
 
+        echo "Copy temp image"
         if [ "$sandbox" = "true" ]; then
           ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} "
             mkdir -p ${{inputs.remote_path}}
