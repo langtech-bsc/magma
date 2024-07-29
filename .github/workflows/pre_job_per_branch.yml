@@ -313,7 +313,7 @@ jobs:
               file_path=$(dirname "${{steps.set_defaults.outputs.singularity}}")
               
               ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${{ secrets.remote_user }}@${{ secrets.remote_host }}" 2>/dev/null \
-              "cd \"${{ inputs.remote_singularity_registry_path }}/${file_path}\" 2>/dev/null && ls -td main.docker_* | sed -e '1,5d' | xargs rm -rf || true"
+              "cd \"${{ inputs.remote_singularity_registry_path }}/${file_path}\" 2>/dev/null && ls -td ${{steps.set_defaults.outputs.singularity}}.docker_* | sed -e '1,5d' | xargs rm -rf || true"
               
 
               
