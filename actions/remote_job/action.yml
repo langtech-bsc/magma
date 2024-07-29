@@ -251,12 +251,14 @@ runs:
       if: ${{ inputs.job == 'docker2tar' }}
       shell: bash
       run: |
-        exists=$(ssh "${{ steps.globals.outputs.SSH_OPTIONS }}" "${{ inputs.remote_user }}"@"${{ inputs.remote_host }}" "
+        exists=$(ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}} << 'EOF'
             if [ -f '${{ inputs.remote_path }}/${NAME}.tar' ]; then
               echo 'true'
             else
               echo 'false'
-            fi")
+            fi
+            EOF
+            )
           
         if [ "$exists" = "false" ] || [ "${{ inputs.rebuild }}" = "true" ]; then
         
