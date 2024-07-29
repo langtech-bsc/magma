@@ -75,7 +75,8 @@ jobs:
           always() &&
           needs.pre-job.result == 'success' && 
           (needs.docker2tar.result == 'success' || needs.docker2tar.result == 'skipped') &&
-          (needs.build.result == 'success' || needs.build.result == 'skipped')
+          (needs.build.result == 'success' || needs.build.result == 'skipped') &&
+          (needs.install.result == 'success' || needs.install.result == 'skipped')
           
       needs: [pre-job, docker2tar, build]
       uses: langtech-bsc/magma/.github/workflows/launch_job.yml@main
