@@ -263,7 +263,7 @@ runs:
             echo 'false'
           fi
         ")
-          
+        echo "exists: $exists"
         if [ "$exists" = "false" ] || [ "${{ inputs.force_rebuild }}" = "true" ]; then
         
           echo "Create dir ${{inputs.remote_path}}"
