@@ -256,6 +256,7 @@ runs:
       if: ${{ inputs.job == 'docker2tar' }}
       shell: bash
       run: |
+        NAME=$(echo "${{inputs.image}}" | sed 's/\//_/g')
         exists=$(ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}} "
           if [ -f '${{ inputs.remote_path }}/${NAME}.tar' ]; then
             echo 'true'
@@ -263,14 +264,13 @@ runs:
             echo 'false'
           fi
         ")
-        echo "exists: $exists"
+
         if [ "$exists" = "false" ] || [ "${{ inputs.force_rebuild }}" = "true" ]; then
         
           echo "Create dir ${{inputs.remote_path}}"
           ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}} "umask 007 && mkdir -p ${{inputs.remote_path}}"
           
           echo "Build docker"
-          NAME=$(echo "${{inputs.image}}" | sed 's/\//_/g')
           docker build . --no-cache -t user/${NAME}:latest
   
           echo "Save docker"
