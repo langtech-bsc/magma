@@ -316,7 +316,9 @@ jobs:
                 if [ -z "$SING" ]; then
                   [ "$docker_sha" = "null" ] && echo "Please add docker file as [Dockerfile, DockerFile, dockerFile, dockerfile] or disable singularity in your config.yml" && exit 1
                   echo "create_singularity=true" >> $GITHUB_OUTPUT
-                  echo "install_reqs=true" >> $GITHUB_OUTPUT
+                  if [ "$req_sha" != "null" ]; then
+                    echo "install_reqs=true" >> $GITHUB_OUTPUT
+                  fi
                   OLD_SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_null${{steps.set_defaults.outputs.sif}}
   
                 else
