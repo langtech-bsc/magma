@@ -32,7 +32,7 @@ jobs:
     with:
       job_path: ${{ needs.pre-job.outputs.job_path }}/build
       job_name: ${{ needs.pre-job.outputs.job_name }}
-      singularity: ${{ needs.pre-job.outputs.singularity }}
+      singularity: ${{ needs.pre-job.outputs.old_image }}
       remote_job: "build"
       remote_job_sandbox: ${{fromJson(needs.pre-job.outputs.sandbox)}}
 
