@@ -352,8 +352,7 @@ jobs:
                 if [[ $OLD_SING == *.sif ]]; then
                   SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_${req_sha}${{steps.set_defaults.outputs.sif}}
                 else
-                SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_${req_sha}
-  
+                  SING=${{steps.set_defaults.outputs.singularity}}.docker_${docker_sha}-req_${req_sha}
                 fi
               fi
             fi
