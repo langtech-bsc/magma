@@ -308,6 +308,14 @@ jobs:
             "cd ${{vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH}} && ls -dt ${{steps.set_defaults.outputs.singularity}}:docker_${docker_sha}-req_${req_sha}*" | head -n 1 || true)
             
             if [ -z "$SING" ]; then
+
+              file_name=$(basename "$singularity")
+              file_path=$(dirname "$singularity")
+              
+              ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} "
+                cd \"${{ inputs.remote_singularity_registry_path }}/${file_path}\" 2>/dev/null && ls -td main.docker_* | sed -e '1,5d' | xargs rm -rf || true
+              "
+
               
               SING=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${{ secrets.remote_user }}@${{ secrets.remote_host }}" 2>/dev/null \
                         "cd ${{vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH}} && ls -dt ${{steps.set_defaults.outputs.singularity}}*" | head -n 1 || true)
