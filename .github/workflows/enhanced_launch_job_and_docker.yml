@@ -36,7 +36,7 @@ jobs:
       remote_job: "build"
       remote_job_sandbox: ${{fromJson(needs.pre-job.outputs.sandbox)}}
 
-  install:
+  install: # If you need to remove this part, you will need to modify also /action/remote_jobs/build.
     if: |
       always() &&
       needs.pre-job.result == 'success' &&
