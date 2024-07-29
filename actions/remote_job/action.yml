@@ -256,7 +256,10 @@ runs:
       if: ${{ inputs.job == 'docker2tar' }}
       shell: bash
       run: |
+        echo "Extact name"
         NAME=$(echo "${{inputs.image}}" | sed 's/\//_/g')
+        
+        echo "Check if tar exists"
         exists=$(ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}} "
           if [ -f '${{ inputs.remote_path }}/${NAME}.tar' ]; then
             echo 'true'
