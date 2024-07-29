@@ -34,9 +34,17 @@ if [ ! -f "$DOCKER_TAR_PATH/$TAR_NAME.tar" ]; then
     exit 1
 fi
 
-if [[ "$IMAGE" == */* ]]; then  # Check if string contains at least one slash
-    result="${IMAGE%/*}"        # Remove everything after the last '/'
-    mkdir -p $result
+if [[ "$IMAGE" == */* ]]; then
+    # Extract the directory path by removing everything after the last '/'
+    result="${IMAGE%/*}"
+    echo "result path: $result"
+    
+    # Check if the result is not an empty string
+    if [[ -n "$result" ]]; then
+        # Create the directory if it doesn't already exist
+        echo "Create dir: $result"
+        mkdir -p "$result"
+    fi
 fi
 
 if [ "$LDCONFIG" = "true" ]; then
