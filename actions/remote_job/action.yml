@@ -285,7 +285,7 @@ runs:
           echo "Remove tar"
           rm ${NAME}.tar
           echo "Done."
-        esle
+        else
           echo "Skip building image, since already exists."
         fi 
 
