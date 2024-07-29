@@ -37,14 +37,9 @@ fi
 if [[ "$IMAGE" == */* ]]; then
     # Extract the directory path by removing everything after the last '/'
     result="${IMAGE%/*}"
-    echo "result path: $result"
-    
-    # Check if the result is not an empty string
-    if [[ -n "$result" ]]; then
-        # Create the directory if it doesn't already exist
-        echo "Create dir: $result"
-        mkdir -p "$result"
-    fi
+    # Create the directory if it doesn't already exist
+    echo "Create dir: $result"
+    mkdir -p "$IMAGES_PATH/$result"
 fi
 
 if [ "$LDCONFIG" = "true" ]; then
