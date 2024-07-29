@@ -96,6 +96,7 @@ runs:
         mkdir -p ${{ inputs.local_dir }}
         cp ${{ github.action_path }}/${{inputs.job}}/* ${{ inputs.local_dir }}/.
         echo "${{ steps.globals.outputs.ENV_PREFIX }}_IMAGE=${{inputs.image}}" > "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
+        echo "${{ steps.globals.outputs.ENV_PREFIX }}_OLD_IMAGE=${{inputs.old_image}}" >> "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
 
     - name: On build
       if: ${{ contains(fromJson('["build"]'), inputs.job )}}
@@ -122,7 +123,6 @@ runs:
 
         echo "${{ steps.globals.outputs.ENV_PREFIX }}_PATH=${{inputs.remote_singularity_registry_path}}" >> "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
         echo "${{ steps.globals.outputs.ENV_PREFIX }}_REQUIREMENTS_PATH=${{inputs.remote_path}}" >> "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
-        echo "${{ steps.globals.outputs.ENV_PREFIX }}_OLD_IMAGE=${{inputs.old_image}}" >> "${{inputs.local_dir}}/${{ steps.globals.outputs.ENV_FILE }}"
 
 
     - name: Install and push requirements
