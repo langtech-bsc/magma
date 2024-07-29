@@ -12,7 +12,12 @@ inputs:
     description: "True, If it must be sandbox"
     required: false
     default: false
-
+    
+  force_rebuild:
+    description: "True, If it must rebuild existing dockerfile"
+    required: false
+    default: false
+    
   image:
     description: "Name of the image" # <branch_name>:sha, signularity_image_name.
     required: true
@@ -251,16 +256,15 @@ runs:
       if: ${{ inputs.job == 'docker2tar' }}
       shell: bash
       run: |
-        exists=$(ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}} << 'EOF'
-            if [ -f '${{ inputs.remote_path }}/${NAME}.tar' ]; then
-              echo 'true'
-            else
-              echo 'false'
-            fi
-            EOF
-            )
+        exists=$(ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}} "
+          if [ -f '${{ inputs.remote_path }}/${NAME}.tar' ]; then
+            echo 'true'
+          else
+            echo 'false'
+          fi
+        ")
           
-        if [ "$exists" = "false" ] || [ "${{ inputs.rebuild }}" = "true" ]; then
+        if [ "$exists" = "false" ] || [ "${{ inputs.force_rebuild }}" = "true" ]; then
         
           echo "Create dir ${{inputs.remote_path}}"
           ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}} "umask 007 && mkdir -p ${{inputs.remote_path}}"
