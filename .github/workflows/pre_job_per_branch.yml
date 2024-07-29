@@ -356,7 +356,11 @@ jobs:
               fi
             fi
           fi
-          echo "old_image=$OLD_SING" >> $GITHUB_OUTPUT
+          if [ -z "$OLD_SING" ]; then
+            echo "old_image=$SING" >> $GITHUB_OUTPUT
+          else
+            echo "old_image=$OLD_SING" >> $GITHUB_OUTPUT
+          fi
           echo "singularity=$SING" >> $GITHUB_OUTPUT
 
       - name: Output configuration
