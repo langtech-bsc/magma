@@ -251,26 +251,37 @@ runs:
       if: ${{ inputs.job == 'docker2tar' }}
       shell: bash
       run: |
-        echo "Build docker"
-        NAME=$(echo "${{inputs.image}}" | sed 's/\//_/g')
-        docker build . --no-cache -t user/${NAME}:latest
-
-        echo "Save docker"
-        docker save user/${NAME}:latest -o ${NAME}.tar 
-        docker image rm user/${NAME}:latest
-      
-        echo "Push docker tar file to ${{inputs.remote_path}}"
-        echo "Create dir"
-        ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}} "umask 007 && mkdir -p ${{inputs.remote_path}}"
-
-        echo "Push Docker"
-        scp ${{ steps.globals.outputs.SSH_OPTIONS }} ${NAME}.tar ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }} 
-        # scp ${{ steps.globals.outputs.SSH_OPTIONS }} [Dd]ocker[Ff]ile ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }} 
+        exists=$(ssh "${{ steps.globals.outputs.SSH_OPTIONS }}" "${{ inputs.remote_user }}"@"${{ inputs.remote_host }}" "
+            if [ -f '${{ inputs.remote_path }}/${NAME}.tar' ]; then
+              echo 'true'
+            else
+              echo 'false'
+            fi")
+          
+        if [ "$exists" = "false" ] || [ "${{ inputs.rebuild }}" = "true" ]; then
         
-        # ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}}  "chmod 660 -r ${{ inputs.remote_path }}"
-        echo "Remove tar"
-        rm ${NAME}.tar
-        echo "Done."
+          echo "Create dir ${{inputs.remote_path}}"
+          ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}} "umask 007 && mkdir -p ${{inputs.remote_path}}"
+          
+          echo "Build docker"
+          NAME=$(echo "${{inputs.image}}" | sed 's/\//_/g')
+          docker build . --no-cache -t user/${NAME}:latest
+  
+          echo "Save docker"
+          docker save user/${NAME}:latest -o ${NAME}.tar 
+          docker image rm user/${NAME}:latest
+        
+          echo "Push docker tar file to ${{inputs.remote_path}}"
+          scp ${{ steps.globals.outputs.SSH_OPTIONS }} ${NAME}.tar ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }} 
+          # scp ${{ steps.globals.outputs.SSH_OPTIONS }} [Dd]ocker[Ff]ile ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }} 
+          
+          # ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}}  "chmod 660 -r ${{ inputs.remote_path }}"
+          echo "Remove tar"
+          rm ${NAME}.tar
+          echo "Done."
+        esle
+          echo "Skip building image, since already exists."
+        fi 
 
 
         
