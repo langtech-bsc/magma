@@ -343,10 +343,11 @@ jobs:
           done)  > ./tmp 2>&1 < /dev/null &
 
           (while true; do
+            tput reset
+            echo "Check the logs at: ${{ steps.mlflow.outputs.artifact_url }}"
             hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
             echo ""
-            echo "Check the logs at: ${{ steps.mlflow.outputs.artifact_url }}"
-            sleep 1m
+            sleep 20
           done) &
           hpc-rocket watch rocket.yml --jobid ${{ env.SLURM_JOB_ID }} 
         shell: bash
