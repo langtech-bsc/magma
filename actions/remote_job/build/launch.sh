@@ -13,7 +13,8 @@
 source $JOB_PATH/remote_job.env
 
 IMAGES_PATH=$REMOTE_JOB_PATH
-IMAGE=$(echo "$REMOTE_JOB_IMAGE" | sed 's/req_.*/req_null/')
+IMAGE=$(echo "$REMOTE_JOB_IMAGE" | sed 's/req_.*/req_null/') 
+#IMAGE="REMOTE_JOB_IMAGE #If the part of installation is removed this section
 DOCKER_TAR_PATH=$REMOTE_JOB_DOCKER_TAR_PATH
 SANDBOX=$REMOTE_JOB_SANDBOX
 TAR_NAME=$(echo $REMOTE_JOB_IMAGE | sed 's/\//_/g')
@@ -58,7 +59,7 @@ else
 fi
 
 mv $TAR_NAME $IMAGES_PATH/$IMAGE
-chmod 770 -R $IMAGES_PATH/$IMAGE
-rm $DOCKER_TAR_PATH/$TAR_NAME.tar
+chmod g+wrx -R $IMAGES_PATH/$IMAGE
 chown :$SLURM_JOB_ACCOUNT "$IMAGES_PATH/$IMAGE"
+rm $DOCKER_TAR_PATH/$TAR_NAME.tar
 echo "Image build done"
