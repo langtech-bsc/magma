@@ -312,9 +312,9 @@ jobs:
               file_name=$(basename "${{steps.set_defaults.outputs.singularity}}")
               file_path=$(dirname "${{steps.set_defaults.outputs.singularity}}")
               
-              ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} "
-                cd \"${{ inputs.remote_singularity_registry_path }}/${file_path}\" 2>/dev/null && ls -td main.docker_* | sed -e '1,5d' | xargs rm -rf || true
-              "
+              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${{ secrets.remote_user }}@${{ secrets.remote_host }}" 2>/dev/null \
+              "cd \"${{ inputs.remote_singularity_registry_path }}/${file_path}\" 2>/dev/null && ls -td main.docker_* | sed -e '1,5d' | xargs rm -rf || true"
+              
 
               
               SING=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${{ secrets.remote_user }}@${{ secrets.remote_host }}" 2>/dev/null \
