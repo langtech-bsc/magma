@@ -78,7 +78,7 @@ jobs:
           (needs.build.result == 'success' || needs.build.result == 'skipped') &&
           (needs.install.result == 'success' || needs.install.result == 'skipped')
           
-      needs: [pre-job, docker2tar, build]
+      needs: [pre-job, docker2tar, build, install]
       uses: langtech-bsc/magma/.github/workflows/launch_job.yml@main
       secrets: inherit
       with:
