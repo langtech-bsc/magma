@@ -341,12 +341,9 @@ jobs:
             fi
             sleep 10
           done)  > ./tmp 2>&1 < /dev/null &
-          if [ "${TERM:-}" = "" ]; then
-            echo "Setting TERM to dumb" # makes tput happy
-            TERM="dumb"
-          fi
+
           (while true; do
-            tput reset
+            echo -e "\033[H\033[J"
             echo "Check the logs at: ${{ steps.mlflow.outputs.artifact_url }}"
             hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
             echo ""
