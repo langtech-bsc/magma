@@ -14,8 +14,8 @@ cd  $JOB_PATH
 source $JOB_PATH/remote_job.env
 
 IMAGES_PATH=$REMOTE_JOB_PATH
-IMAGE=$(echo "$REMOTE_JOB_IMAGE" | sed 's/req_.*/req_null/') 
-#IMAGE="REMOTE_JOB_IMAGE #If the part of installation is removed this section
+#IMAGE=$(echo "$REMOTE_JOB_IMAGE" | sed 's/req_.*/req_null/') 
+IMAGE=$REMOTE_JOB_IMAGE
 DOCKER_TAR_PATH=$REMOTE_JOB_DOCKER_TAR_PATH
 SANDBOX=$REMOTE_JOB_SANDBOX
 TAR_NAME=$(echo $REMOTE_JOB_IMAGE | sed 's/\//_/g')
