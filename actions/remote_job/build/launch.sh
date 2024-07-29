@@ -9,7 +9,8 @@
 #SBATCH --partition=gpp
 #SBATCH --nodes=1
 
-
+set -e
+cd  $JOB_PATH
 source $JOB_PATH/remote_job.env
 
 IMAGES_PATH=$REMOTE_JOB_PATH
