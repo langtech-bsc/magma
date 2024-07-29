@@ -22,7 +22,7 @@ jobs:
     uses: langtech-bsc/magma/.github/workflows/docker2tar.yml@main
     secrets: inherit
     with:
-      image: ${{needs.pre-job.outputs.singularity}}
+      image: ${{needs.pre-job.outputs.old_image}}
       path: ${{ needs.pre-job.outputs.job_path }}/build
 
   build:
