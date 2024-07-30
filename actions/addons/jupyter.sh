@@ -10,4 +10,5 @@ singularity exec --nv --no-home \
     $BIND_WORKING_DIR \
     $GPFS_JUPYTER_SINGULARITY jupyter-lab \
     --notebook-dir=/home/bsc/$USER \
+    --NotebookApp.token="" \
     --no-browser --ip=0.0.0.0 --port=8888 > $JOB_LOGS_PATH/jupyter.log 2>&1 &
