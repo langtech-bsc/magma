@@ -16,7 +16,7 @@ inputs:
   force_rebuild:
     description: "True, If it must rebuild existing dockerfile"
     required: false
-    default: false
+    default: true
     
   image:
     description: "Name of the image" # <branch_name>:sha, signularity_image_name.
