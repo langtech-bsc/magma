@@ -218,7 +218,9 @@ runs:
               mkdir -p ${{inputs.remote_path}}
               cd ${{inputs.remote_path}}
               module load singularity
+              export SINGULARITY_CACHEDIR=$HOME/.singularity/tmpcache
               singularity build -F --sandbox $TMP_IMAGE ${{ inputs.remote_singularity_registry_path }}/${{ inputs.old_image }}
+              singularity cache clean
             "
           fi
           
@@ -250,7 +252,9 @@ runs:
             ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{ inputs.remote_user }}@${{ inputs.remote_host }} "
               cd ${{inputs.remote_path}}
               module load singularity
+              export SINGULARITY_CACHEDIR=$HOME/.singularity/tmpcache
               singularity build -F ${TMP_IMAGE}.sif $TMP_IMAGE
+              singularity cache clean
               mv $TMP_IMAGE.sif ${{ inputs.remote_singularity_registry_path }}/${{ inputs.image }}
               chmod 770 ${{ inputs.remote_singularity_registry_path }}/${{ inputs.image }}
               rm -rf $TMP_IMAGE ${TMP_IMAGE}.sif
