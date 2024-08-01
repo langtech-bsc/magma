@@ -1,8 +1,8 @@
-echo "Launch vllm endpoint"
+echo "Launch VLLM endpoint"
 nohup singularity run --nv \
     --bind $GPFS_MODELS_REGISTRY_PATH:/data  \
     $GPFS_VLLM_SINGULARITY  \
     --model /data/$GPFS_VLLM_MODEL \
     --host 0.0.0.0 \
-    --tensor-parallel-size $SLURM_GPUS_ON_NODE \ 
-    --port 8080 $(echo $JOB_VLLM_PARAMS) > $JOB_PATH/logs/vllm.log 2>&1 &
+    --port 8080 \
+    --tensor-parallel-size $SLURM_GPUS_ON_NODE $(echo $JOB_VLLM_PARAMS) > $JOB_PATH/logs/vllm.log 2>&1 &
