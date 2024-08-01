@@ -4,5 +4,5 @@ nohup singularity run --nv \
     $GPFS_VLLM_SINGULARITY  \
     --model /data/$GPFS_VLLM_MODEL \
     --host 0.0.0.0 \
-    --tensor-parallel-size $SLURM_GPUS_ON_NODE
+    --tensor-parallel-size $SLURM_GPUS_ON_NODE \ 
     --port 8080 $(echo $JOB_VLLM_PARAMS) > $JOB_PATH/logs/vllm.log 2>&1 &
