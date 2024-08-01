@@ -2,10 +2,10 @@
 #SBATCH --job-name=%JOB_NAME%
 #SBATCH --output=%JOB_LOGS_PATH%/output.log
 #SBATCH --error=%JOB_LOGS_PATH%/error.log
-#SBATCH --time=00-4:00:00
+#SBATCH --time=00-2:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=20
-#SBATCH --qos=gp_bscls
+#SBATCH --qos=gp_debug
 #SBATCH --partition=gpp
 #SBATCH --nodes=1
 
