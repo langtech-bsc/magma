@@ -287,18 +287,18 @@ runs:
           echo "Build docker"
           docker build . --no-cache -t user/${NAME}:latest
   
-          echo "Save docker"
+          echo "Saving docker..."
           docker save user/${NAME}:latest -o ${NAME}.tar 
           docker image rm user/${NAME}:latest
         
-          echo "Push docker tar file to ${{inputs.remote_path}}"
+          echo "Pushing docker tar file to ${{inputs.remote_path}}"
           scp ${{ steps.globals.outputs.SSH_OPTIONS }} ${NAME}.tar ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }} 
           # scp ${{ steps.globals.outputs.SSH_OPTIONS }} [Dd]ocker[Ff]ile ${{inputs.remote_user}}@${{inputs.remote_host}}:${{ inputs.remote_path }} 
           
           # ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}}  "chmod 660 -r ${{ inputs.remote_path }}"
           echo "Remove tar"
           rm ${NAME}.tar
-          echo "Done."
+          echo "Done"
         else
           echo "Skip building image, since already exists."
         fi 
