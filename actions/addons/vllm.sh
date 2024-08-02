@@ -14,7 +14,7 @@ nohup singularity run --nv \
     --bind $GPFS_MODELS_REGISTRY_PATH:/$dir  \
     $GPFS_VLLM_SINGULARITY  \
     --model /$MODEL_NAME \
-    --served-model-name $GPFS_VLLM_MODEL
+    --served-model-name $GPFS_VLLM_MODEL \
     --host 0.0.0.0 \
     --port 8080 \
     --tensor-parallel-size $SLURM_GPUS_ON_NODE $(echo $JOB_VLLM_PARAMS) > $JOB_PATH/logs/vllm.log 2>&1 &
