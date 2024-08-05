@@ -18,6 +18,11 @@ on:
         type: string
         default: ''
 
+      slrum_sbatch_params: # It recives a string of sbatch parameters to add launch file. E.g, #SBATCH time=00-1:00:00$$#SBATCH gres=gpu:2$$#SBATCH ntasks=1$$#SBATCH cpus-per-task= 20"
+        required: false
+        type: string
+        default: ''
+        
       singularity:
         required: false
         type: string
@@ -120,14 +125,16 @@ jobs:
       GPFS_VLLM_MODEL: ${{ inputs.vllm_model }}
 
     steps:
-      - uses: langtech-bsc/magma/actions/set_secrets_to_env_action@main
+      - uses: actions/checkout@v4
+
+      - uses: ./actions/set_secrets_to_env_action #main
         with:
           must_exist: 'REMOTE_HOST,REMOTE_USER,REMOTE_GROUP,SSH_PRIVATE_KEY'
           exclude: 'SSH_PRIVATE_KEY'
           json: ${{ toJson(secrets) }}
           name: 'secret'
 
-      - uses: langtech-bsc/magma/actions/set_secrets_to_env_action@main
+      - uses: ./actions/set_secrets_to_env_action #main
         with:
           must_exist: 'MLFLOW_TRACKING_SERVER_URL,GPFS_SINGULARITY_IMAGE_REGISTRY_PATH,GPFS_MODELS_REGISTRY_PATH'
           json: ${{ toJson(vars) }}
@@ -195,6 +202,9 @@ jobs:
           echo "JOB_SLEEP: ${{env.JOB_SLEEP}}"
           echo "REMOTE_JOB: ${{inputs.remote_job}}"
 
+          echo ""
+          echo "SLURM_PARAMS: ${{inputs.slrum_sbatch_params}}"
+
       - name: Set Socket variables
         if: ${{ env.JOB_ENABLE_TUNNEL == 'true' || env.JOB_ENABLE_TUNNEL == true}}
         run: |
@@ -203,9 +213,9 @@ jobs:
           echo "EXTRA_SOCKET=${EXTRA_SOCKET}" >> "$GITHUB_ENV"
           echo "JUPYTER_SOCKET=${JUPYTER_SOCKET}" >> "$GITHUB_ENV"
 
-      - uses: actions/checkout@v4
+      
 
-      - uses: langtech-bsc/magma/actions/remote_job@main
+      - uses: ./actions/remote_job #main
         if: ${{ contains(fromJson('["install", "build", "ldconfig"]'), inputs.remote_job) }}
         with:
           job: ${{inputs.remote_job}}
@@ -226,8 +236,32 @@ jobs:
           HASHED_NAME=$(echo -n "${{env.JOB_NAME}}" | md5sum | awk '{print $1}')
           echo "HASHED_NAME=$HASHED_NAME" >> "$GITHUB_ENV"
           echo "JOB_SSH_TUNNEL_COMMAND=ssh -N -L ${{ env.PORT2 }}:${{ env.JOB_TUNNELS_PATH }}/${HASHED_NAME}-${{env.EXTRA_SOCKET}} -L ${{ env.PORT1 }}:${{ env.JOB_TUNNELS_PATH }}/${HASHED_NAME}-${{env.JUPYTER_SOCKET}} ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}" >> $GITHUB_ENV
-      
-      - uses: langtech-bsc/magma/actions/addons@main
+    
+      - name: Add slurm variables
+        if: ${{ ! contains(fromJson('["install", "build", "ldconfig"]'), inputs.remote_job) &&  inputs.slrum_sbatch_params != '' }}
+        run: |
+          touch src/launch.sh
+          if grep -q -E '^[[:space:]]*#SBATCH' src/launch.sh; then
+            echo "File contains lines starting with #SBATCH" and also passed as input slrum_sbatch_params, please remove from src/launch.sh or do not pass slrum_sbatch_params input.
+            exit 1
+          fi
+
+          echo "${{inputs.slrum_sbatch_params}}" | tr '@' '\n' > temp_file
+          echo '#SBATCH --job-name=%JOB_NAME%' >> temp_file
+          echo '#SBATCH --output=%JOB_LOGS_PATH%/output.log' >> temp_file
+          echo '#SBATCH --error=%JOB_LOGS_PATH%/error.log' >>  temp_file
+          cat src/launch.sh >>  temp_file
+          mv temp_file src/launch.sh
+          cat src/launch.sh
+          exit 1
+  
+      - uses: ./actions/addons #main
+        if: ${{ contains(fromJson('["install", "build", "ldconfig"]'), inputs.remote_job) }}
+        with:
+          file: "src/launch.sh"
+
+      - uses: ./actions/addons #main
+        if: ${{ ! contains(fromJson('["install", "build", "ldconfig"]'), inputs.remote_job) }}
         with:
           file: "src/launch.sh"
           jupyter: ${{ env.JOB_ENABLE_JUPYTER }}
@@ -237,22 +271,14 @@ jobs:
 
       - name: Pre launch modifications
         run: |
+          # echo '#SBATCH --account=${{secrets.REMOTE_GROUP}}' >  tmp_file
+          # cat src/launch.sh >> tmp_file
+          # mv tmp_file src/launch.sh
+          
           sed -i "s|\%JOB_NAME%|${{ env.JOB_NAME }}|" src/launch.sh
           sed -i "s|\%JOB_LOGS_PATH%|${{ env.JOB_LOGS_PATH  }}|" src/launch.sh
           sed -i "s|\%JOB_PATH%|${{ env.JOB_PATH  }}|" src/launch.sh
-
-      # - name: Set up Python
-      #   uses: actions/setup-python@v5
-      #   with:
-      #     python-version: '3.12'
-      #     architecture: 'x64'
-
-
-      # - name: Display Python version
-      #   run: python -c "import sys; print(sys.version)"
-
-      # - name: Install hpc rocket from source
-      #   run: pip install hpc-rocket
+          cat src/launch.sh
 
       - name: Launch job
         run: |
@@ -266,7 +292,7 @@ jobs:
       
       - name: Setup mlflow
         id: mlflow
-        uses: langtech-bsc/magma/actions/mlflow@main
+        uses: ./actions/mlflow #main
         with:
           experiment_name: ${GITHUB_REPOSITORY#$GITHUB_REPOSITORY_OWNER/}
           remote_host: ${{ secrets.REMOTE_HOST }}

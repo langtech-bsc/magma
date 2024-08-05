@@ -10,7 +10,7 @@ on:
 
 jobs:
   pre-job:
-    uses: langtech-bsc/magma/.github/workflows/pre_job_per_branch.yml@main
+    uses: ./.github/workflows/pre_job_per_branch.yml #main
     secrets: inherit
     with:
       runs_on: ${{inputs.runs_on}}
@@ -19,7 +19,7 @@ jobs:
   docker2tar:
     if: ${{contains(fromJson('["true", true]'), needs.pre-job.outputs.create_singularity) }}
     needs:  pre-job
-    uses: langtech-bsc/magma/.github/workflows/docker2tar.yml@main
+    uses: ./.github/workflows/docker2tar.yml #main
     secrets: inherit
     with:
       image: ${{needs.pre-job.outputs.old_image}}
@@ -27,7 +27,7 @@ jobs:
 
   build:
     needs:  [pre-job, docker2tar]
-    uses: langtech-bsc/magma/.github/workflows/launch_job.yml@main
+    uses: ./.github/workflows/launch_job.yml #main
     secrets: inherit
     with:
       job_path: ${{ needs.pre-job.outputs.job_path }}/build
@@ -45,7 +45,7 @@ jobs:
       (needs.build.result == 'success' || needs.build.result == 'skipped') 
 
     needs:  [pre-job, docker2tar, build]
-    uses: langtech-bsc/magma/.github/workflows/install_requirements_online.yml@main
+    uses: ./.github/workflows/install_requirements_online.yml #main
     secrets: inherit
     with:
       job_path: ${{ needs.pre-job.outputs.job_path }}/install
@@ -61,7 +61,7 @@ jobs:
   #     (needs.build.result == 'success' || needs.build.result == 'skipped') 
 
   #   needs:  [pre-job, docker2tar, build]
-  #   uses: langtech-bsc/magma/.github/workflows/launch_job.yml@main
+  #   uses: ./.github/workflows/launch_job.yml #main
   #   secrets: inherit
   #   with:
   #     job_path: ${{ needs.pre-job.outputs.job_path }}/install
@@ -79,12 +79,14 @@ jobs:
           (needs.install.result == 'success' || needs.install.result == 'skipped')
           
       needs: [pre-job, docker2tar, build, install]
-      uses: langtech-bsc/magma/.github/workflows/launch_job.yml@main
+      uses: ./.github/workflows/launch_job.yml #main
       secrets: inherit
       with:
         runs_on: ${{ inputs.runs_on }}
         job_path: ${{ needs.pre-job.outputs.job_path }}
         job_name: ${{ needs.pre-job.outputs.job_name }}
+        slrum_sbatch_params: ${{ needs.pre-job.outputs.slrum_sbatch_params }}
+
         enable_tunnel: ${{ fromJson(needs.pre-job.outputs.enable_tunnel) }}
         enable_jupyter: ${{ fromJson(needs.pre-job.outputs.enable_jupyter) }}
         jupyter_singularity: ${{ needs.pre-job.outputs.jupyter_singularity }}

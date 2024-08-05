@@ -10,7 +10,7 @@ on:
       
 jobs:
   pre-job:
-    uses: langtech-bsc/magma/.github/workflows/pre_job_per_branch.yml@main
+    uses: ./.github/workflows/pre_job_per_branch.yml #main
     secrets: inherit
     with:
       runs_on: ${{inputs.runs_on}}
@@ -18,12 +18,14 @@ jobs:
 
   launch-job:
       needs: pre-job
-      uses: langtech-bsc/magma/.github/workflows/launch_job.yml@main
+      uses: ./.github/workflows/launch_job.yml #main
       secrets: inherit
       with:
         runs_on: ${{ inputs.runs_on }}
         job_path: ${{ needs.pre-job.outputs.job_path }}
         job_name: ${{ needs.pre-job.outputs.job_name }}
+        slrum_sbatch_params: ${{ needs.pre-job.outputs.slrum_sbatch_params }}
+        
         enable_tunnel: ${{ fromJson(needs.pre-job.outputs.enable_tunnel) }}
         enable_jupyter: ${{ fromJson(needs.pre-job.outputs.enable_jupyter) }}
         jupyter_singularity: ${{ needs.pre-job.outputs.jupyter_singularity }}

@@ -20,7 +20,7 @@ jobs:
     runs-on: ${{ inputs.runs_on }}
     steps:
       - uses: actions/checkout@v4
-      - uses: langtech-bsc/magma/actions/remote_job@main
+      - uses: ./actions/remote_job #main
         with:
           job: 'docker2tar'
           image: ${{ inputs.image }}
