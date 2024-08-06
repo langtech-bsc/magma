@@ -8,20 +8,29 @@ slurm:
     - --partition=acc
     - --nodes=1
     - --exclusive
+  command:
+    bash _launch.sh > logs/script.log 2>&1
+    # This command will always execute during your job. It runs after initializing Jupyter, TGI, or VLLM, if they are enabled.
+    # You can specify any Bash script located in the `src` directory as the entry point.
+    # You may also include any additional commands, such as `echo "hello world"` or `python script.py`.
+    # Note: If specifying a file, it must exist in the `src` directory of your repository.
 
 tunnel: #SSH Tunnel
-  enable: false # Default false. If tgi or jupyter is enable, always enabled
+  enable: false # Default is `false`. If TGI, VLLM, or Jupyter is enabled, it will be enabled automatically.
 
 jupyter:
   enable: true # Default false.
-  singularity: python-jupyter.sif                                   # The singularity image must exists in $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH.
+  singularity: python-jupyter.sif  # The singularity image must exists in $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH.
 
 
 tgi: # Text generation inference
   enable: false # Default false.
   model: Mistral-7B-Instruct-v0.3 # The model must exists in $GPFS_MODEL_REGISTRY_PATH.
   singularity: text-generation-inference.singularity.1.4.4.sif # The singularity image must exists in $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH.
-  params: --max-input-length 8000 --max-batch-prefill-tokens 8000 --max-total-tokens 12000 # (TGI) Must be valid parameters, otherwise tgi will throw an error
+  params: # (TGI) Must be valid parameters, otherwise tgi will throw an error
+    --max-input-length 8000
+    --max-batch-prefill-tokens 8000
+    --max-total-tokens 12000
 
 vllm: # VLLM api
   enable: true # Default false.
@@ -36,7 +45,7 @@ vllm: # VLLM api
 # You will have access to this image through $JOB_SINGULARITY_IMAGE env variable.
 
 singularity:
-  enable: true # Default false. 
+  enable: false # Default false. 
   # name: my-custom-image.sif # Default: <repo>/<branch>. For current or another <repo>/<branch> do not add .sif.
   sandbox: false # Default: false. Only needed while creating, it will save image as a sandbox if true, otherwise as a singularity.
 

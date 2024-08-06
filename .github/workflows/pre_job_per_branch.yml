@@ -64,9 +64,10 @@ on:
       ldconfig:
         value: ${{jobs.pre-job-per-branch.outputs.ldconfig}}
 
-      slrum_sbatch_params:
-        value: ${{jobs.pre-job-per-branch.outputs.slrum_sbatch_params}}
-
+      slurm_sbatch_params:
+        value: ${{jobs.pre-job-per-branch.outputs.slurm_sbatch_params}}
+      slurm_command:
+        value: ${{jobs.pre-job-per-branch.outputs.slurm_command}}
 jobs:
   pre-job-per-branch:
       runs-on: ${{inputs.runs_on}}
@@ -99,7 +100,8 @@ jobs:
         install_reqs: ${{ steps.singularity.outputs.install_reqs}}
         ldconfig: ${{ steps.set_defaults.outputs.ldconfig}}
 
-        slrum_sbatch_params: ${{ steps.slurm.outputs.sbatch_params}}
+        slurm_sbatch_params: ${{ steps.slurm.outputs.sbatch_params}}
+        slurm_command: ${{ steps.slurm.outputs.slurm_command}}
         
 
       steps:
@@ -383,8 +385,9 @@ jobs:
       - name: Slurm
         id: slurm
         run: |
-          sbatch_params=$(echo '${{ toJson(steps.yaml.outputs) }}' | grep -oP '"slurm_params_\d+":\s*"\K[^"]+' | awk '{print "#SBATCH " $0}' ORS='@' || true)
+          sbatch_params=$(echo '${{ toJson(steps.yaml.outputs) }}' | grep -oP '"slurm_params_\d+":\s*"\K[^"]+' | awk '{print "#SBATCH " $0}' ORS='@' | sed 's/@$//' || true)
           echo "sbatch_params=$sbatch_params" >> $GITHUB_OUTPUT
+          echo "slurm_command=${{ steps.yaml.outputs.slurm_command }}" >> $GITHUB_OUTPUT
 
       - name: Output configuration
         run: |
@@ -394,6 +397,7 @@ jobs:
           echo "job_path: ${{ steps.job_variables.outputs.job_path }}"
           echo ""
           echo "sbatch_params: ${{ steps.slurm.outputs.sbatch_params }}"
+          echo "slurm_command: ${{ steps.slurm.outputs.slurm_command }}"
           echo ""
           echo "enable_tunnel: ${{ steps.set_defaults.outputs.enable_tunnel }}"
           echo "enable_jupyter: ${{ steps.set_defaults.outputs.enable_jupyter }}"

@@ -26,7 +26,17 @@ inputs:
     description: "Add sleep at the end of file"
     required: false
     default: false
+  
+  email: 
+    description: "Email to add as #SBATCH directive"
+    required: false
+    default: "email-not-provided"
     
+  slurm_command: 
+    description: "A slurm command to add in the file"
+    required: false
+    default: "email-not-provided"
+
 runs:
   using: "composite"
   steps:
@@ -42,9 +52,11 @@ runs:
       shell: bash
       run: |
         if [ -f "${{inputs.file}}" ]; then
+          echo '#SBATCH --mail-type=all' >  file.tmp
+          echo '#SBATCH --mail-user=${{inputs.email}}' >>  file.tmp
           echo "" >> file.tmp
-          echo "${{ steps.globals.outputs.START_LINE }}" > file.tmp
-        else 
+          echo "${{ steps.globals.outputs.START_LINE }}" >> file.tmp
+        else
           echo "File '${{inputs.file}}' does not exist" && exit 1
         fi
 
@@ -88,6 +100,13 @@ runs:
       run: |
         echo "${{ steps.globals.outputs.LAST_LINE }}" >> file.tmp
         echo "" >> file.tmp
+
+    - name: Add slurm command line
+      if: ${{ inputs.slurm_command != '' }}
+      shell: bash
+      run: |
+        echo "" >> file.tmp
+        echo ${{inputs.slurm_command}} >> file.tmp
         echo "" >> file.tmp
 
     - name: Update file

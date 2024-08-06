@@ -85,7 +85,8 @@ jobs:
         runs_on: ${{ inputs.runs_on }}
         job_path: ${{ needs.pre-job.outputs.job_path }}
         job_name: ${{ needs.pre-job.outputs.job_name }}
-        slrum_sbatch_params: ${{ needs.pre-job.outputs.slrum_sbatch_params }}
+        slurm_sbatch_params: ${{ needs.pre-job.outputs.slurm_sbatch_params }}
+        slurm_command: ${{ needs.pre-job.outputs.slurm_command }}
 
         enable_tunnel: ${{ fromJson(needs.pre-job.outputs.enable_tunnel) }}
         enable_jupyter: ${{ fromJson(needs.pre-job.outputs.enable_jupyter) }}
