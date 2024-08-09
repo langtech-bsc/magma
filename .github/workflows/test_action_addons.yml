@@ -9,7 +9,7 @@ jobs:
     runs-on: magma-runner-set
     steps:
       - uses: actions/checkout@v4
-      - uses: ./actions/addons
+      - uses: langtech-bsc/magma/actions/addons
         with:
             file: "src/launch.sh"
             jupyter: true

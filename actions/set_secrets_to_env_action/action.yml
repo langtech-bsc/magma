@@ -6,14 +6,16 @@ inputs:
   json:
     description: "Vars, secrets or any json with key values."
     required: false
-  type:
-    description: "Whether they are of type variable, secret, or any other, including the default secret."
+  name:
+    description: "Whether it's a variable, secret, or any other. Default secret."
     default: "secret"
     required: false
-  must_include:
+  must_exist:
     description: "These keys must exist with a value; otherwise, an error will be thrown (E.g, 'key1,key2,...')."
     required: false
-
+  exclude:
+    description: "Variables those are not going to be set as env avariables (E.g, 'key1,key3,...')."
+    required: false
 runs:
   using: "node20"
   main: "dist/index.js"

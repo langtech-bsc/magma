@@ -18,6 +18,16 @@ on:
         type: string
         default: ''
 
+      slurm_sbatch_params: # It recives a string of sbatch parameters to add launch file. E.g, #SBATCH time=00-1:00:00$$#SBATCH gres=gpu:2$$#SBATCH ntasks=1$$#SBATCH cpus-per-task= 20"
+        required: false
+        type: string
+        default: ''
+        
+      slurm_command: # A bash or sh command to add inside the slurm job file
+        required: false
+        type: string
+        default: ''
+
       singularity:
         required: false
         type: string
@@ -105,6 +115,7 @@ jobs:
     env:
       PORT1: "8888"
       PORT2: "8080"
+      EMAIL: ""
       JOB_NAME: ${{ inputs.job_name }}
       JOB_TUNNELS_PATH: /gpfs/scratch/${{ secrets.REMOTE_GROUP }}/${{ secrets.REMOTE_USER }}/tunnels
       JOB_SINGULARITY_IMAGE: ${{ vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH }}/${{ inputs.singularity }}
@@ -120,6 +131,8 @@ jobs:
       GPFS_VLLM_MODEL: ${{ inputs.vllm_model }}
 
     steps:
+      - uses: actions/checkout@v4
+
       - uses: langtech-bsc/magma/actions/set_secrets_to_env_action@main
         with:
           must_exist: 'REMOTE_HOST,REMOTE_USER,REMOTE_GROUP,SSH_PRIVATE_KEY'
@@ -195,6 +208,10 @@ jobs:
           echo "JOB_SLEEP: ${{env.JOB_SLEEP}}"
           echo "REMOTE_JOB: ${{inputs.remote_job}}"
 
+          echo ""
+          echo "SLURM_PARAMS: ${{inputs.slurm_sbatch_params}}"
+          echo "SLURM_COMMAND: ${{inputs.slurm_command}}"
+
       - name: Set Socket variables
         if: ${{ env.JOB_ENABLE_TUNNEL == 'true' || env.JOB_ENABLE_TUNNEL == true}}
         run: |
@@ -202,8 +219,6 @@ jobs:
           JUPYTER_SOCKET=socket${{ env.PORT1 }}.sock
           echo "EXTRA_SOCKET=${EXTRA_SOCKET}" >> "$GITHUB_ENV"
           echo "JUPYTER_SOCKET=${JUPYTER_SOCKET}" >> "$GITHUB_ENV"
-
-      - uses: actions/checkout@v4
 
       - uses: langtech-bsc/magma/actions/remote_job@main
         if: ${{ contains(fromJson('["install", "build", "ldconfig"]'), inputs.remote_job) }}
@@ -226,14 +241,42 @@ jobs:
           HASHED_NAME=$(echo -n "${{env.JOB_NAME}}" | md5sum | awk '{print $1}')
           echo "HASHED_NAME=$HASHED_NAME" >> "$GITHUB_ENV"
           echo "JOB_SSH_TUNNEL_COMMAND=ssh -N -L ${{ env.PORT2 }}:${{ env.JOB_TUNNELS_PATH }}/${HASHED_NAME}-${{env.EXTRA_SOCKET}} -L ${{ env.PORT1 }}:${{ env.JOB_TUNNELS_PATH }}/${HASHED_NAME}-${{env.JUPYTER_SOCKET}} ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}" >> $GITHUB_ENV
-      
+    
+      - name: Add slurm variables
+        if: ${{ ! contains(fromJson('["install", "build", "ldconfig"]'), inputs.remote_job) &&  inputs.slurm_sbatch_params != '' }}
+        run: |
+          
+          if [ -f src/launch.sh ]; then
+            echo "The launch.sh can't be inside the src directory. Please remove it or change the name."
+            exit 1
+          fi
+          
+          mkdir -p src
+          file="src/launch.sh"
+          touch file
+          echo "#!/bin/sh" > $file
+          echo "${{inputs.slurm_sbatch_params}}" | tr '@' '\n' >> $file
+          echo '#SBATCH --job-name=${{ env.JOB_NAME }}' >> $file
+          echo '#SBATCH --output=${{ env.JOB_LOGS_PATH  }}/output.err' >> $file
+          echo '#SBATCH --error=${{ env.JOB_LOGS_PATH  }}/error.log' >>  $file
+  
       - uses: langtech-bsc/magma/actions/addons@main
+        if: ${{ contains(fromJson('["install", "build", "ldconfig"]'), inputs.remote_job) }}
+        with:
+          file: "src/launch.sh"
+          job_path: ${{env.JOB_PATH}}
+
+      - uses: langtech-bsc/magma/actions/addons@main
+        if: ${{ ! contains(fromJson('["install", "build", "ldconfig"]'), inputs.remote_job) }}
         with:
           file: "src/launch.sh"
           jupyter: ${{ env.JOB_ENABLE_JUPYTER }}
           tgi: ${{ env.JOB_TGI_ENABLE }}
           vllm: ${{ env.JOB_VLLM_ENABLE }}
           sleep: ${{ env.JOB_SLEEP }}
+          email: ${{env.EMAIL}},${{secrets.USER_EMAIL}}
+          job_path: ${{env.JOB_PATH}}
+          slurm_command: ${{inputs.slurm_command}}
 
       - name: Pre launch modifications
         run: |
@@ -241,28 +284,15 @@ jobs:
           sed -i "s|\%JOB_LOGS_PATH%|${{ env.JOB_LOGS_PATH  }}|" src/launch.sh
           sed -i "s|\%JOB_PATH%|${{ env.JOB_PATH  }}|" src/launch.sh
 
-      # - name: Set up Python
-      #   uses: actions/setup-python@v5
-      #   with:
-      #     python-version: '3.12'
-      #     architecture: 'x64'
-
-
-      # - name: Display Python version
-      #   run: python -c "import sys; print(sys.version)"
-
-      # - name: Install hpc rocket from source
-      #   run: pip install hpc-rocket
-
       - name: Launch job
         run: |
           #Launching job...
           tempfile=$(mktemp)
-          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "rm -fr ${{ env.JOB_LOGS_PATH }}/*"
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "mkdir -p ${{ env.JOB_LOGS_PATH }} && rm -fr ${{ env.JOB_LOGS_PATH }}/*"
           hpc-rocket launch rocket.yml 2>&1 | tee "$tempfile"
           output=$(cat "$tempfile")
           echo "SLURM_JOB_ID=$(echo "$output" | grep -oE 'job [0-9]+' | grep -oE '[0-9]+')" >> "$GITHUB_ENV"
-          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "chmod -R g+rw ${{ env.JOB_PATH }}"
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "chmod -R g+r ${{ env.JOB_PATH }}"
       
       - name: Setup mlflow
         id: mlflow

@@ -64,6 +64,10 @@ on:
       ldconfig:
         value: ${{jobs.pre-job-per-branch.outputs.ldconfig}}
 
+      slurm_sbatch_params:
+        value: ${{jobs.pre-job-per-branch.outputs.slurm_sbatch_params}}
+      slurm_command:
+        value: ${{jobs.pre-job-per-branch.outputs.slurm_command}}
 jobs:
   pre-job-per-branch:
       runs-on: ${{inputs.runs_on}}
@@ -96,6 +100,10 @@ jobs:
         install_reqs: ${{ steps.singularity.outputs.install_reqs}}
         ldconfig: ${{ steps.set_defaults.outputs.ldconfig}}
 
+        slurm_sbatch_params: ${{ steps.slurm.outputs.sbatch_params}}
+        slurm_command: ${{ steps.slurm.outputs.slurm_command}}
+        
+
       steps:
 
       - name: Get job variables
@@ -112,6 +120,8 @@ jobs:
       - uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v4
 
       - name: check if job exists
         id: check_job
@@ -132,7 +142,6 @@ jobs:
             echo "exists=true" >> $GITHUB_OUTPUT
             exit 1
 
-      - uses: actions/checkout@v4
 
       - uses: actions-tools/yaml-outputs@8a3d95c649e970fbe0fb68b11e21a64a9b7bb1b0
         id: yaml
@@ -371,6 +380,14 @@ jobs:
             echo "old_image=$OLD_SING" >> $GITHUB_OUTPUT
           fi
           echo "singularity=$SING" >> $GITHUB_OUTPUT
+  
+
+      - name: Slurm
+        id: slurm
+        run: |
+          sbatch_params=$(echo '${{ toJson(steps.yaml.outputs) }}' | grep -oP '"slurm_params_\d+":\s*"\K[^"]+' | awk '{print "#SBATCH " $0}' ORS='@' | sed 's/@$//' || true)
+          echo "sbatch_params=$sbatch_params" >> $GITHUB_OUTPUT
+          echo "slurm_command=${{ steps.yaml.outputs.slurm_command }}" >> $GITHUB_OUTPUT
 
       - name: Output configuration
         run: |
@@ -378,6 +395,9 @@ jobs:
           echo "repo_branch: ${{ steps.job_variables.outputs.repo_branch }}"
           echo "branch: ${{ steps.job_variables.outputs.branch }}"
           echo "job_path: ${{ steps.job_variables.outputs.job_path }}"
+          echo ""
+          echo "sbatch_params: ${{ steps.slurm.outputs.sbatch_params }}"
+          echo "slurm_command: ${{ steps.slurm.outputs.slurm_command }}"
           echo ""
           echo "enable_tunnel: ${{ steps.set_defaults.outputs.enable_tunnel }}"
           echo "enable_jupyter: ${{ steps.set_defaults.outputs.enable_jupyter }}"
@@ -399,6 +419,7 @@ jobs:
           echo "old_image: ${{ steps.singularity.outputs.old_image }}"
           echo "create_singularity: ${{ steps.singularity.outputs.create_singularity }}"
           echo "install_reqs: ${{ steps.singularity.outputs.install_reqs }}"
+          
           
       - name: Check vllm and tgi enable
         if: ${{contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_vllm ) && contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_tgi )}}
