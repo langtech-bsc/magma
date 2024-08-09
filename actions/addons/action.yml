@@ -58,7 +58,7 @@ runs:
         if [ -f "${{inputs.file}}" ]; then
           echo '#SBATCH --chdir=${{inputs.job_path}}' >  file.tmp
           echo '#SBATCH --mail-user=${{inputs.email}}' >>  file.tmp
-          echo '#SBATCH --mail-user=${{inputs.email}}' >>  file.tmp
+          echo '#SBATCH --mail-type=all' >>  file.tmp
           echo "" >> file.tmp
           echo "${{ steps.globals.outputs.START_LINE }}" >> file.tmp
         else
