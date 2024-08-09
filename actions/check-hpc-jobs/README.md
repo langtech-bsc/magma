@@ -29,7 +29,7 @@
 
     - name: check if job exists
       id: job_exists
-      uses: langtech-bsc/magma/check-hpc-jobs #main
+      uses: langtech-bsc/magma/check-hpc-jobs@main
       with:
         job_name: ${{ steps.job_variables.outputs.job_name}}
         remote_user: ${{ secrets.REMOTE_USER}}

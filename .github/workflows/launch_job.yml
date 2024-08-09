@@ -133,14 +133,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./actions/set_secrets_to_env_action #main
+      - uses: langtech-bsc/magma/actions/set_secrets_to_env_action@main
         with:
           must_exist: 'REMOTE_HOST,REMOTE_USER,REMOTE_GROUP,SSH_PRIVATE_KEY'
           exclude: 'SSH_PRIVATE_KEY'
           json: ${{ toJson(secrets) }}
           name: 'secret'
 
-      - uses: ./actions/set_secrets_to_env_action #main
+      - uses: langtech-bsc/magma/actions/set_secrets_to_env_action@main
         with:
           must_exist: 'MLFLOW_TRACKING_SERVER_URL,GPFS_SINGULARITY_IMAGE_REGISTRY_PATH,GPFS_MODELS_REGISTRY_PATH'
           json: ${{ toJson(vars) }}
@@ -220,7 +220,7 @@ jobs:
           echo "EXTRA_SOCKET=${EXTRA_SOCKET}" >> "$GITHUB_ENV"
           echo "JUPYTER_SOCKET=${JUPYTER_SOCKET}" >> "$GITHUB_ENV"
 
-      - uses: ./actions/remote_job #main
+      - uses: langtech-bsc/magma/actions/remote_job@main
         if: ${{ contains(fromJson('["install", "build", "ldconfig"]'), inputs.remote_job) }}
         with:
           job: ${{inputs.remote_job}}
@@ -260,13 +260,13 @@ jobs:
           echo '#SBATCH --output=${{ env.JOB_LOGS_PATH  }}/output.err' >> $file
           echo '#SBATCH --error=${{ env.JOB_LOGS_PATH  }}/error.log' >>  $file
   
-      - uses: ./actions/addons #main
+      - uses: langtech-bsc/magma/actions/addons@main
         if: ${{ contains(fromJson('["install", "build", "ldconfig"]'), inputs.remote_job) }}
         with:
           file: "src/launch.sh"
           job_path: ${{env.JOB_PATH}}
 
-      - uses: ./actions/addons #main
+      - uses: langtech-bsc/magma/actions/addons@main
         if: ${{ ! contains(fromJson('["install", "build", "ldconfig"]'), inputs.remote_job) }}
         with:
           file: "src/launch.sh"
@@ -297,7 +297,7 @@ jobs:
       
       - name: Setup mlflow
         id: mlflow
-        uses: ./actions/mlflow #main
+        uses: langtech-bsc/magma/actions/mlflow@main
         with:
           experiment_name: ${GITHUB_REPOSITORY#$GITHUB_REPOSITORY_OWNER/}
           remote_host: ${{ secrets.REMOTE_HOST }}
