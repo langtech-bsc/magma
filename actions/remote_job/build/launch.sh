@@ -63,7 +63,7 @@ else
 fi
 
 mv $TAR_NAME $IMAGES_PATH/$IMAGE
-chmod g+wrx -R $IMAGES_PATH/$IMAGE
-chown :$SLURM_JOB_ACCOUNT "$IMAGES_PATH/$IMAGE"
+chmod g+rwx -R $IMAGES_PATH/$IMAGE
+chown :$SLURM_JOB_ACCOUNT "$IMAGES_PATH/$IMAGE" # It works only for MN5.
 rm $DOCKER_TAR_PATH/$TAR_NAME.tar
 echo "Image build done"
