@@ -287,7 +287,6 @@ jobs:
       - name: Launch job
         run: |
           #Launching job...
-          ls src/launch.sh
           tempfile=$(mktemp)
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "mkdir -p ${{ env.JOB_LOGS_PATH }} && rm -fr ${{ env.JOB_LOGS_PATH }}/*"
           hpc-rocket launch rocket.yml 2>&1 | tee "$tempfile"
