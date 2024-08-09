@@ -37,6 +37,10 @@ inputs:
     required: false
     default: "email-not-provided"
 
+  job_path: 
+    description: "Path where the job will launch"
+    required: true
+
 runs:
   using: "composite"
   steps:
@@ -52,7 +56,8 @@ runs:
       shell: bash
       run: |
         if [ -f "${{inputs.file}}" ]; then
-          echo '#SBATCH --mail-type=all' >  file.tmp
+          echo '#SBATCH --chdir=${{inputs.job_path}}' >  file.tmp
+          echo '#SBATCH --mail-user=${{inputs.email}}' >>  file.tmp
           echo '#SBATCH --mail-user=${{inputs.email}}' >>  file.tmp
           echo "" >> file.tmp
           echo "${{ steps.globals.outputs.START_LINE }}" >> file.tmp
@@ -106,7 +111,7 @@ runs:
       shell: bash
       run: |
         echo "" >> file.tmp
-        echo ${{inputs.slurm_command}} >> file.tmp
+        echo '${{inputs.slurm_command}}' >> file.tmp
         echo "" >> file.tmp
 
     - name: Update file
