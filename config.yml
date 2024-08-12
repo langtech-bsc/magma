@@ -2,12 +2,13 @@ slurm:
   params:
     - --time=00-1:00:00
     - --gres=gpu:2
-    - --ntasks=1
+    - --ntasks=1 # WARNING: To use fine-tuning, specify only 1 task; otherwise, it won't work. The system will always create tasks according to the number of GPUs requested.
     - --cpus-per-task=20
     - --qos=acc_debug
     - --partition=acc
     - --nodes=1
     - --exclusive
+    
   command:
     bash _launch.sh > logs/script.log 2>&1
     # This command will always execute during your job. It runs after initializing Jupyter, TGI, or VLLM, if they are enabled.
