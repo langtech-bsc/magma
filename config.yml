@@ -38,8 +38,6 @@ vllm: # VLLM api
   singularity: vllm-inference.sif # The singularity image must exists in $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH.
   params: "" # (VLM) Must be valid parameters, otherwise tgi will throw an error
              
-      
-
 
 # Enable singularity get access to custom image from $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH.
 # You will have access to this image through $JOB_SINGULARITY_IMAGE env variable.
@@ -49,6 +47,39 @@ singularity:
   # name: my-custom-image.sif # Default: <repo>/<branch>. For current or another <repo>/<branch> do not add .sif.
   sandbox: false # Default: false. Only needed while creating, it will save image as a sandbox if true, otherwise as a singularity.
 
-# Following conditions only applies if the name of singularity (name:) is equal to current <repo>/<branch> and matches the current repo, branch.
-  # If the image does not exists or is a old version , it will create new image from the dockerfile you have in your repository.
-  # If already exists, will install all requirements from requirement.txt.
+  # Following conditions only applies if the name of singularity (name:) is equal to current <repo>/<branch> and matches the current repo, branch.
+  # - If the image does not exists or is a old version , it will create new image from the dockerfile you have in your repository.
+  # - If already exists, will install all requirements from requirement.txt.
+
+
+finetune:
+  enable: True # Default false.
+  output_model_name: "demo"
+  
+  params:
+    - --model_name_or_path $GPFS_MODELS_REGISTRY_PATH/<your model> # Set your base model here
+    - --data_paths $GPFS_DATA_REGISTRY_PATH/apps/RAG_Dataset_prompts/train_ml.json # You can add multiple data paths separated by a space
+    - --eval_data_paths $GPFS_DATA_REGISTRY_PATH/apps/RAG_Dataset_prompts/validation_ml.json # You can add multiple eval data paths separated by a space
+    - --deepspeed ds_type3_config_autombs.json #You can find here more deepspeed config files. https://github.com/langtech-bsc/FastChat/tree/main/fastchat/deepspeed_configs
+      # You can add your own deepspeed config like /path/to/deepspeed_config.json
+    - --bf16 True
+    - --num_train_epochs 1
+    - --per_device_train_batch_size 2
+    - --per_device_eval_batch_size 2
+    - --gradient_accumulation_steps 4
+    - --eval_strategy 'steps'
+    - --eval_steps 0.25
+    - --save_strategy "steps"
+    - --save_steps 0.25
+    - --save_total_limit 20
+    - --learning_rate 2e-5
+    - --weight_decay 0.
+    - --warmup_ratio 0.03
+    - --lr_scheduler_type 'cosine'
+    - --logging_steps 1
+    - --model_max_length 4096 # Change this depending on your requirements.
+    - --gradient_checkpointing True
+    - --lazy_preprocess True
+    - --save_total_limit 1 #If you want to keep all or additional checkpoints, either comment out this parameter or increase its value as needed.
+    # It will add chat template automatically
+    # To add more parameters check this: https://huggingface.co/docs/transformers/v4.44.0/en/main_classes/trainer#transformers.TrainingArguments

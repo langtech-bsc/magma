@@ -64,6 +64,13 @@ on:
       ldconfig:
         value: ${{jobs.pre-job-per-branch.outputs.ldconfig}}
 
+      enable_finetune: 
+        value: ${{ jobs.pre-job-per-branch.outputs.enable_finetune }}
+      finetune_params: 
+        value: ${{ jobs.pre-job-per-branch.outputs.finetune_params }}
+      finetune_output_model_name: 
+        value: ${{ jobs.pre-job-per-branch.outputs.finetune_output_model_name }}
+
       slurm_sbatch_params:
         value: ${{jobs.pre-job-per-branch.outputs.slurm_sbatch_params}}
       slurm_command:
@@ -99,6 +106,10 @@ jobs:
         create_singularity: ${{ steps.singularity.outputs.create_singularity}}
         install_reqs: ${{ steps.singularity.outputs.install_reqs}}
         ldconfig: ${{ steps.set_defaults.outputs.ldconfig}}
+
+        enable_finetune: ${{ steps.set_defaults.outputs.enable_finetune}}
+        finetune_params: ${{ steps.finetune.outputs.finetune_params}}
+        finetune_output_model_name: ${{ steps.finetune.outputs.finetune_output_model_name}}
 
         slurm_sbatch_params: ${{ steps.slurm.outputs.sbatch_params}}
         slurm_command: ${{ steps.slurm.outputs.slurm_command}}
@@ -166,6 +177,8 @@ jobs:
           DEFAULT_ENABLE_VLLM: "false"
           DEFAULT_VLLM_SINGULARITY: "text-generation-inference.singularity.1.4.4.sif"
           DEFAULT_VLLM_MODEL: "Mixtral-8x7B-Instruct-v0.1"
+
+          DEFAULT_ENABLE_FINETUNE: "false"
 
           CURRENT_REPO_BRANCH: "${{ steps.job_variables.outputs.repo_branch }}"
 
@@ -275,6 +288,12 @@ jobs:
           # Set singularity
           echo "singularity=${SINGULARITY}" >> $GITHUB_OUTPUT
 
+          # Set default for vllm.enable
+          if [ -z "${{ steps.yaml.outputs.finetune_enable }}" ]; then
+          echo "enable_finetune=${{ env.DEFAULT_ENABLE_FINETUNE }}" >> $GITHUB_OUTPUT
+          else
+          echo "enable_finetune=${{ steps.yaml.outputs.finetune_enable }}" >> $GITHUB_OUTPUT
+          fi
           
 
       - name: Get singularity
@@ -382,10 +401,18 @@ jobs:
           echo "singularity=$SING" >> $GITHUB_OUTPUT
   
 
+      - name: Set finetune params
+        id: finetune
+        if: ${{contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_finetune) }}
+        run: |
+          finetune_params=$(echo '${{ toJson(steps.yaml.outputs) }}' | grep -oP '"finetune_params_[0-9]*": "\K.*"' | sed  's/"$//' | awk '{print $0}' ORS='#' | sed 's/#$//' || true)
+          echo "finetune_params=$finetune_params" >> $GITHUB_OUTPUT
+          echo "finetune_output_model_name=${{ steps.yaml.outputs.finetune_output_model_name }}" >> $GITHUB_OUTPUT
+
       - name: Slurm
         id: slurm
         run: |
-          sbatch_params=$(echo '${{ toJson(steps.yaml.outputs) }}' | grep -oP '"slurm_params_\d+":\s*"\K[^"]+' | awk '{print "#SBATCH " $0}' ORS='@' | sed 's/@$//' || true)
+          sbatch_params=$(echo '${{ toJson(steps.yaml.outputs) }}' | grep -oP '"slurm_params_[0-9]*": "\K.*"' | sed  's/"$//' | awk '{print $0}' ORS='#' | sed 's/#$//' || true)
           echo "sbatch_params=$sbatch_params" >> $GITHUB_OUTPUT
           echo "slurm_command=${{ steps.yaml.outputs.slurm_command }}" >> $GITHUB_OUTPUT
 
@@ -419,12 +446,14 @@ jobs:
           echo "old_image: ${{ steps.singularity.outputs.old_image }}"
           echo "create_singularity: ${{ steps.singularity.outputs.create_singularity }}"
           echo "install_reqs: ${{ steps.singularity.outputs.install_reqs }}"
-          
+          echo ""
+          echo "enable_finetune: ${{ steps.set_defaults.outputs.enable_finetune }}"
+      
           
       - name: Check vllm and tgi enable
         if: ${{contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_vllm ) && contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_tgi )}}
         run: |
           echo "Enabling both tgi and vllm is incompatible, please enable only one."
           exit 1
-          
+            
           

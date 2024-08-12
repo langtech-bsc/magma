@@ -40,4 +40,8 @@ jobs:
         vllm_model: ${{ needs.pre-job.outputs.vllm_model }}
         vllm_params: ${{ needs.pre-job.outputs.vllm_params }}
         
+        enable_finetune: ${{ fromJson(needs.pre-job.outputs.enable_finetune) }}
+        finetune_params: ${{ needs.pre-job.outputs.finetune_params}}
+        finetune_output_model_name: ${{ needs.pre-job.outputs.finetune_output_model_name}}
+      
         singularity: ${{ needs.pre-job.outputs.singularity }}

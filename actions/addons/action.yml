@@ -22,6 +22,16 @@ inputs:
     required: false
     default: false
 
+  finetune:
+    description: "Inject finetune"
+    required: false
+    default: false
+
+  finetune_params:
+    description: "Paremeters for finetuning sepearated by #"
+    required: false
+    default: ''
+
   sleep: 
     description: "Add sleep at the end of file"
     required: false
@@ -40,6 +50,8 @@ inputs:
   job_path: 
     description: "Path where the job will launch"
     required: true
+  
+  
 
 runs:
   using: "composite"
@@ -99,6 +111,23 @@ runs:
         cat ${{ github.action_path }}/vllm.sh >> file.tmp
         echo "" >> file.tmp
         echo "Set vllm done."
+
+  
+    - name: Set Finetune
+      shell: bash
+      if: ${{ inputs.finetune == 'true' }}
+      run: |
+        echo "" >> file.tmp
+        cat ${{ github.action_path }}/finetune.sh >> file.tmp
+
+        sed -i "/%FINETUNE_PARAMS%/ {
+          r /dev/stdin
+          d
+        }" file.tmp <<< $(echo "${{inputs.finetune_params}}" | tr '#' '\n' | awk '{print "    " $0 " \\"}')
+
+        echo "" >> file.tmp
+        echo "" >> file.tmp
+        echo "Set finetune done."
 
     - name: Set last line
       shell: bash
