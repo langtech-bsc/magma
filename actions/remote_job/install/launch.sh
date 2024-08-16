@@ -5,7 +5,7 @@
 #SBATCH --time=00-2:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=20
-#SBATCH --qos=gp_debug
+#SBATCH --qos=gp_bscls
 #SBATCH --partition=gpp
 #SBATCH --nodes=1
 
