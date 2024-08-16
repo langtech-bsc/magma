@@ -35,7 +35,7 @@ inputs:
   slurm_command: 
     description: "A slurm command to add in the file"
     required: false
-    default: "email-not-provided"
+    default: ""
 
   job_path: 
     description: "Path where the job will launch"
