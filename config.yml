@@ -4,9 +4,9 @@ slurm:
     - --gres=gpu:4
     - --ntasks-per-node=4 # WARNING: To use fine-tuning, --ntasks-per-node must be equal to the number of gpus.
     - --cpus-per-task=20
-    - --qos=acc_debug
+    - --qos=acc_bscls
     - --partition=acc
-    - --nodes=8
+    - --nodes=1
     - --exclusive
     - --account=$REMOTE_GROUP
     
@@ -56,7 +56,7 @@ singularity:
 
 
 finetune:
-  enable: True # Default false.
+  enable: False # Default false.
   output_model_name: "demo"
   
   params: # User $REMOTE_GROUP as your remote group and $REMOTE_USER as your remorte user
