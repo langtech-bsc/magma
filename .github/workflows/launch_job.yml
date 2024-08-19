@@ -147,7 +147,6 @@ jobs:
 
       JOB_FINETUNE_ENABLE: ${{ inputs.enable_finetune }}
       JOB_FINETUNE_OUTPUT_MODEL_NAME: ${{ inputs.finetune_output_model_name }}
-      JOB_OUTPUT_MODEL_NAME: ${{ inputs.finetune_output_model_name }}
 
     steps:
       - uses: actions/checkout@v4
@@ -260,7 +259,7 @@ jobs:
       - name: Save job related env vars to file
         run: |
           mkdir -p src/logs
-          env | grep -e '^JOB_' -e '^GPFS_' > src/job.env
+          env | grep -e '^JOB_' -e '^GPFS_' -e '^REMOTE_GROUP' > src/job.env
           HASHED_NAME=$(echo -n "${{env.JOB_NAME}}" | md5sum | awk '{print $1}')
           echo "HASHED_NAME=$HASHED_NAME" >> "$GITHUB_ENV"
           echo "JOB_SSH_TUNNEL_COMMAND=ssh -N -L ${{ env.PORT2 }}:${{ env.JOB_TUNNELS_PATH }}/${HASHED_NAME}-${{env.EXTRA_SOCKET}} -L ${{ env.PORT1 }}:${{ env.JOB_TUNNELS_PATH }}/${HASHED_NAME}-${{env.JUPYTER_SOCKET}} ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}" >> $GITHUB_ENV
@@ -276,11 +275,10 @@ jobs:
           
           mkdir -p src
           file="src/launch.sh"
-          touch file
           echo "#!/bin/sh" > $file
-          echo "${{inputs.slurm_sbatch_params}}" | tr '#' '\n' >> $file
+          echo "${{inputs.slurm_sbatch_params}}" | tr '#' '\n' | awk '{print "#SBATCH " $0}' >> $file
           echo '#SBATCH --job-name=${{ env.JOB_NAME }}' >> $file
-          echo '#SBATCH --output=${{ env.JOB_LOGS_PATH  }}/output.err' >> $file
+          echo '#SBATCH --output=${{ env.JOB_LOGS_PATH  }}/output.log' >> $file
           echo '#SBATCH --error=${{ env.JOB_LOGS_PATH  }}/error.log' >>  $file
   
       - uses: langtech-bsc/magma/actions/addons@main

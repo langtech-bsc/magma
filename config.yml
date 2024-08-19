@@ -1,17 +1,19 @@
 slurm:
   params:
     - --time=00-1:00:00
-    - --gres=gpu:2
-    - --ntasks=1 # WARNING: To use fine-tuning, specify only 1 task; otherwise, it won't work. The system will always create tasks according to the number of GPUs requested.
+    - --gres=gpu:4
+    - --ntasks-per-node=4 # WARNING: To use fine-tuning, --ntasks-per-node must be equal to the number of gpus.
     - --cpus-per-task=20
     - --qos=acc_debug
     - --partition=acc
-    - --nodes=1
+    - --nodes=8
     - --exclusive
+    - --account=$REMOTE_GROUP
     
-  command:
-    bash _launch.sh > logs/script.log 2>&1
-    # This command will always execute during your job. It runs after initializing Jupyter, TGI, or VLLM, if they are enabled.
+  # command:
+  #   bash _launch.sh > logs/script.log 2>&1
+
+    # This command will always execute during your job. It runs after initializing Jupyter, TGI, VLLM or fine-tune if they are enabled.
     # You can specify any Bash script located in the `src` directory as the entry point.
     # You may also include any additional commands, such as `echo "hello world"` or `python script.py`.
     # Note: If specifying a file, it must exist in the `src` directory of your repository.
@@ -20,7 +22,7 @@ tunnel: #SSH Tunnel
   enable: false # Default is `false`. If TGI, VLLM, or Jupyter is enabled, it will be enabled automatically.
 
 jupyter:
-  enable: true # Default false.
+  enable: false # Default false.
   singularity: python-jupyter.sif  # The singularity image must exists in $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH.
 
 
@@ -34,7 +36,7 @@ tgi: # Text generation inference
     --max-total-tokens 12000
 
 vllm: # VLLM api
-  enable: true # Default false.
+  enable: false # Default false.
   model: Mistral-7B-Instruct-v0.3 # The model must exists in $GPFS_MODEL_REGISTRY_PATH.
   singularity: vllm-inference.sif # The singularity image must exists in $GPFS_SINGULARITY_IMAGE_REGISTRY_PATH.
   params: "" # (VLM) Must be valid parameters, otherwise tgi will throw an error
@@ -57,10 +59,10 @@ finetune:
   enable: True # Default false.
   output_model_name: "demo"
   
-  params:
-    - --model_name_or_path $GPFS_MODELS_REGISTRY_PATH/<your model> # Set your base model here
-    - --data_paths $GPFS_DATA_REGISTRY_PATH/apps/RAG_Dataset_prompts/train_ml.json # You can add multiple data paths separated by a space
-    - --eval_data_paths $GPFS_DATA_REGISTRY_PATH/apps/RAG_Dataset_prompts/validation_ml.json # You can add multiple eval data paths separated by a space
+  params: # User $REMOTE_GROUP as your remote group and $REMOTE_USER as your remorte user
+    - --model_name_or_path /gpfs/projects/$REMOTE_GROUP/text/models/instruction-tuning/models/base_models_with_special_tokens/bsc_7b_hf # Set your base model here
+    - --data_paths /gpfs/projects/$REMOTE_GROUP/data/apps/RAG_Dataset_prompts/train_ml.json # You can add multiple data paths separated by a space
+    - --eval_data_paths /gpfs/projects/$REMOTE_GROUP/data/apps/RAG_Dataset_prompts/validation_ml.json # You can add multiple eval data paths separated by a space
     - --deepspeed ds_type3_config_autombs.json #You can find here more deepspeed config files. https://github.com/langtech-bsc/FastChat/tree/main/fastchat/deepspeed_configs
       # You can add your own deepspeed config like /path/to/deepspeed_config.json
     - --bf16 True
@@ -68,7 +70,7 @@ finetune:
     - --per_device_train_batch_size 2
     - --per_device_eval_batch_size 2
     - --gradient_accumulation_steps 4
-    - --eval_strategy 'steps'
+    - --eval_strategy "steps"
     - --eval_steps 0.25
     - --save_strategy "steps"
     - --save_steps 0.25
@@ -76,7 +78,7 @@ finetune:
     - --learning_rate 2e-5
     - --weight_decay 0.
     - --warmup_ratio 0.03
-    - --lr_scheduler_type 'cosine'
+    - --lr_scheduler_type "cosine"
     - --logging_steps 1
     - --model_max_length 4096 # Change this depending on your requirements.
     - --gradient_checkpointing True

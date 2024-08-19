@@ -450,7 +450,20 @@ jobs:
           echo "enable_finetune: ${{ steps.set_defaults.outputs.enable_finetune }}"
       
           
-      - name: Check vllm and tgi enable
+
+      - name: Verify the compatibility of fine-tuning with other tools.
+        if: | 
+          contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_finetune ) &&
+          ( contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_vllm ) || 
+            contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_tgi) || 
+            contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_singularity) || 
+            contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_jupyter) 
+          )
+        run: |
+          echo "When fine-tuning is enabled, no other tools can be activated or used."
+          exit 1
+
+      - name: Check vllm and tgi enable.
         if: ${{contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_vllm ) && contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_tgi )}}
         run: |
           echo "Enabling both tgi and vllm is incompatible, please enable only one."
