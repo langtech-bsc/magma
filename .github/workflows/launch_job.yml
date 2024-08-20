@@ -396,9 +396,9 @@ jobs:
           done)  > ./tmp 2>&1 < /dev/null &
 
           (while true; do
-            hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
-            echo ""
-            sleep 1m
+            # hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
+            echo -n "."
+            sleep 5m
           done) &
           hpc-rocket watch rocket.yml --jobid ${{ env.SLURM_JOB_ID }} 
         shell: bash

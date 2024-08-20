@@ -27,6 +27,7 @@ num nodes: ${SLURM_NNODES}
 xxxxxxxxxxxxxxxxxxxxxxxxxxxx
 EOF
 
+#train <=> python -m fastchat.train.train
 srun singularity exec --nv /gpfs/projects/bsc88/singularity-images/fastchat-pytorch.sif bash <<EOF
 export LOCAL_RANK=\$SLURM_LOCALID
 export RANK=\$SLURM_PROCID
