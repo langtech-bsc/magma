@@ -385,7 +385,7 @@ jobs:
             done
           }
 
-
+          nohup bash -c 'run_job_monitor' > run_job.log 2>&1 &
           hpc-rocket watch rocket.yml --jobid ${{ env.SLURM_JOB_ID }} 
         shell: bash
         continue-on-error: true
