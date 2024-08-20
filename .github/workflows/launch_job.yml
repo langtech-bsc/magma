@@ -349,8 +349,8 @@ jobs:
           #Live status
           echo "Check the logs at: ${{ steps.mlflow.outputs.artifact_url }}"
           echo "Keep in mind that synchronization may take a little bit"
-
-          echo "\n========================================"
+          echo ""
+          echo "========================================"
           hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
           echo "========================================"
 
@@ -362,7 +362,8 @@ jobs:
               nohup ml_flow -t sync > ${{ steps.mlflow.outputs.sync_dir }}/mlflow.log 2>&1 < /dev/null &
               echo "mlflow_pid=$!" >> $GITHUB_OUTPUT
               
-              echo "\n========================================"
+              echo ""
+              echo "========================================"
               hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
               echo "========================================"
               
