@@ -397,7 +397,7 @@ jobs:
             }
 
           run_job_monitor
-          ' &
+          ' 2>> ${{ steps.mlflow.outputs.sync_dir }}/debug.log &
 
           hpc-rocket watch rocket.yml --jobid ${{ env.SLURM_JOB_ID }} 
         shell: bash
