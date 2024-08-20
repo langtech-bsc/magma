@@ -352,10 +352,7 @@ jobs:
 
           hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
           
-          cat << 'EOF' > run_job.sh
-          #!/bin/bash
-
-          while true; do 
+          nohup $(while true; do 
             running=$(hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}  | grep "RUNNING" | wc -l)
             if [[ $running > 0 ]]
             then
@@ -379,25 +376,13 @@ jobs:
 
                 echo "${{ env.JOB_SSH_TUNNEL_COMMAND }}" > ${{ steps.mlflow.outputs.sync_dir }}/tunnel.log
 
-                hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
-                echo ""
-                echo "    
-                    ____  __  ___   ___   _______   ________
-                   / __ \/ / / / | / / | / /  _/ | / / ____/
-                  / /_/ / / / /  |/ /  |/ // //  |/ / / __  
-                 / _, _/ /_/ / /|  / /|  // // /|  / /_/ /  
-                /_/ |_|\____/_/ |_/_/ |_/___/_/ |_/\____/    
-                
-                "
+              
               fi
               break
             fi
             sleep 15
-          done
-          EOF
-          
-          chmod +x run_job.sh
-          nohup ./run_job.sh  &
+          done)  > ./tmp 2>&1 < /dev/null &
+
 
           hpc-rocket watch rocket.yml --jobid ${{ env.SLURM_JOB_ID }} 
         shell: bash
