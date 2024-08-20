@@ -379,6 +379,8 @@ jobs:
 
                 echo "${{ env.JOB_SSH_TUNNEL_COMMAND }}" > ${{ steps.mlflow.outputs.sync_dir }}/tunnel.log
 
+                hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
+                echo ""
                 echo "    
                     ____  __  ___   ___   _______   ________
                    / __ \/ / / / | / / | / /  _/ | / / ____/
@@ -394,6 +396,8 @@ jobs:
           done
           EOF
           
+          chmod +x run_job.sh
+          nohup ./run_job.sh > run_job.log 2>&1 &
 
           hpc-rocket watch rocket.yml --jobid ${{ env.SLURM_JOB_ID }} 
         shell: bash
