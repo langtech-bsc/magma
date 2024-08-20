@@ -397,7 +397,7 @@ jobs:
           EOF
           
           chmod +x run_job.sh
-          nohup ./run_job.sh > run_job.log 2>&1 &
+          nohup ./run_job.sh  &
 
           hpc-rocket watch rocket.yml --jobid ${{ env.SLURM_JOB_ID }} 
         shell: bash
