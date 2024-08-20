@@ -56,7 +56,7 @@ singularity:
 
 
 finetune:
-  enable: False # Default false.
+  enable: false # Default false.
   output_model_name: "demo"
   
   params: # User $REMOTE_GROUP as your remote group and $REMOTE_USER as your remorte user
