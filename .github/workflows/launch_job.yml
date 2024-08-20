@@ -351,60 +351,53 @@ jobs:
           echo "Keep in mind that synchronization may take a little bit"
 
           hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
-          
-          run_job_monitor() {
-            while true; do
-              running=$(hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }} | grep "RUNNING" | wc -l)
+          nohup bash -c '
+            run_job_monitor() {
+              while true; do
+                running=$(hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }} | grep "RUNNING" | wc -l)
 
-              if [ "$running" -gt 0 ]; then
-                nohup ml_flow -t sync > ${{ steps.mlflow.outputs.sync_dir }}/mlflow.log 2>&1 &
-                echo "mlflow_pid=$!" >> $GITHUB_OUTPUT
+                if [ "$running" -gt 0 ]; then
+                  nohup ml_flow -t sync > ${{ steps.mlflow.outputs.sync_dir }}/mlflow.log 2>&1 &
+                  echo "mlflow_pid=$!" >> $GITHUB_OUTPUT
 
-                if [ '${{ env.JOB_ENABLE_TUNNEL }}' = 'true' ]; then
-                  SLURM_JOB_NODE=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-                                      ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} \
-                                      "scontrol show hostname \$(squeue -j ${{ env.SLURM_JOB_ID }} -o '%R' --noheader) | head -n 1")
-                  echo $SLURM_JOB_NODE > ${{ steps.mlflow.outputs.sync_dir }}/debug.log
+                  if [ '${{ env.JOB_ENABLE_TUNNEL }}' = 'true' ]; then
+                    SLURM_JOB_NODE=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+                                        ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} \
+                                        "scontrol show hostname \$(squeue -j ${{ env.SLURM_JOB_ID }} -o '%R' --noheader) | head -n 1")
+                    echo $SLURM_JOB_NODE > ${{ steps.mlflow.outputs.sync_dir }}/debug.log
 
-                  CHANGE_DIR="cd ${{ env.JOB_PATH }}"
-                  REMOVE_SOCKET="rm -rf ${{ env.EXTRA_SOCKET }} ${{ env.JUPYTER_SOCKET }}"
-                  CREATE_SOCKET="ssh -Nf -L ./${{ env.EXTRA_SOCKET }}:localhost:${{ env.PORT2 }} -L ./${{ env.JUPYTER_SOCKET }}:localhost:${{ env.PORT1 }} ${SLURM_JOB_NODE}"
-                  PERMISSION_SOCKET="cd ${{ env.JOB_PATH }} && chmod 660 ${{ env.EXTRA_SOCKET }} ${{ env.JUPYTER_SOCKET }}"
-                  CREATE_LINKS="mkdir -p ${{ env.JOB_TUNNELS_PATH }} && cd ${{ env.JOB_TUNNELS_PATH }} && ln -sf ${{ env.JOB_PATH }}/${{ env.EXTRA_SOCKET }} ${{env.HASHED_NAME}}-${{env.EXTRA_SOCKET}} && ln -sf ${{ env.JOB_PATH }}/${{ env.JUPYTER_SOCKET }} ${{env.HASHED_NAME}}-${{env.JUPYTER_SOCKET}}"
+                    CHANGE_DIR="cd ${{ env.JOB_PATH }}"
+                    REMOVE_SOCKET="rm -rf ${{ env.EXTRA_SOCKET }} ${{ env.JUPYTER_SOCKET }}"
+                    CREATE_SOCKET="ssh -Nf -L ./${{ env.EXTRA_SOCKET }}:localhost:${{ env.PORT2 }} -L ./${{ env.JUPYTER_SOCKET }}:localhost:${{ env.PORT1 }} ${SLURM_JOB_NODE}"
+                    PERMISSION_SOCKET="cd ${{ env.JOB_PATH }} && chmod 660 ${{ env.EXTRA_SOCKET }} ${{ env.JUPYTER_SOCKET }}"
+                    CREATE_LINKS="mkdir -p ${{ env.JOB_TUNNELS_PATH }} && cd ${{ env.JOB_TUNNELS_PATH }} && ln -sf ${{ env.JOB_PATH }}/${{ env.EXTRA_SOCKET }} ${{env.HASHED_NAME}}-${{env.EXTRA_SOCKET}} && ln -sf ${{ env.JOB_PATH }}/${{ env.JUPYTER_SOCKET }} ${{env.HASHED_NAME}}-${{env.JUPYTER_SOCKET}}"
 
-                  echo "$CHANGE_DIR && $REMOVE_SOCKET && $CREATE_SOCKET && $PERMISSION_SOCKET" >> ${{ steps.mlflow.outputs.sync_dir }}/debug.log
-                  echo "$CREATE_LINKS" >> ${{ steps.mlflow.outputs.sync_dir }}/debug.log
-                  sleep 20
+                    echo "$CHANGE_DIR && $REMOVE_SOCKET && $CREATE_SOCKET && $PERMISSION_SOCKET" >> ${{ steps.mlflow.outputs.sync_dir }}/debug.log
+                    echo "$CREATE_LINKS" >> ${{ steps.mlflow.outputs.sync_dir }}/debug.log
+                    sleep 20
 
-                  ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-                      ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} \
-                      "$CHANGE_DIR && $REMOVE_SOCKET && $CREATE_SOCKET && $PERMISSION_SOCKET" \
-                      >> ${{ steps.mlflow.outputs.sync_dir }}/debug.log 2>&1
+                    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "$CHANGE_DIR && $REMOVE_SOCKET && $CREATE_SOCKET && $PERMISSION_SOCKET" 
 
-                  ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-                      ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} \
-                      "$CREATE_LINKS" \
-                      >> ${{ steps.mlflow.outputs.sync_dir }}/debug.log 2>&1
+                    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "$CREATE_LINKS" 
+                    echo "${{ env.JOB_SSH_TUNNEL_COMMAND }}" > ${{ steps.mlflow.outputs.sync_dir }}/tunnel.log
 
-                  echo "${{ env.JOB_SSH_TUNNEL_COMMAND }}" > ${{ steps.mlflow.outputs.sync_dir }}/tunnel.log
-
-                  echo "    
-                      ____  __  ___   ___   _______   ________
-                     / __ \/ / / / | / / | / /  _/ | / / ____/
-                    / /_/ / / / /  |/ /  |/ // //  |/ / / __  
-                   / _, _/ /_/ / /|  / /|  // // /|  / /_/ /  
-                  /_/ |_|\____/_/ |_/_/ |_/___/_/ |_/\____/    
-                  
-                  "
+                    echo "    
+                        ____  __  ___   ___   _______   ________
+                       / __ \/ / / / | / / | / /  _/ | / / ____/
+                      / /_/ / / / /  |/ /  |/ // //  |/ / / __  
+                     / _, _/ /_/ / /|  / /|  // // /|  / /_/ /  
+                    /_/ |_|\____/_/ |_/_/ |_/___/_/ |_/\____/    
+                    
+                    "
+                  fi
+                  break
                 fi
-                break
-              fi
-              sleep 15
-            done
-          }
+                sleep 15
+              done
+            }
 
-          # Run the function in the background
-          nohup bash -c 'run_job_monitor' &
+          run_job_monitor
+          ' 2>> ${{ steps.mlflow.outputs.sync_dir }}/debug.log &
 
           hpc-rocket watch rocket.yml --jobid ${{ env.SLURM_JOB_ID }} 
         shell: bash
