@@ -395,9 +395,16 @@ jobs:
             sleep 15
           done)  > ./tmp 2>&1 < /dev/null &
 
+          hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
+          echo ""
           (while true; do
-            # hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
-            echo -n "."
+            running=$(hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}  | grep "RUNNING" | wc -l)
+            if [[ $running > 0 ]]
+            then
+              echo ""
+              hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
+              break
+            fi
             sleep 10s
           done) &
           hpc-rocket watch rocket.yml --jobid ${{ env.SLURM_JOB_ID }} 
