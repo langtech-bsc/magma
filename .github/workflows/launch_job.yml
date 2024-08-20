@@ -352,7 +352,7 @@ jobs:
 
           hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
           
-          nohup $(while true; do 
+          while true; do 
             running=$(hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}  | grep "RUNNING" | wc -l)
             if [[ $running > 0 ]]
             then
@@ -393,10 +393,7 @@ jobs:
               break
             fi
             sleep 15
-
-          done) < /dev/null &
-
-
+          done
           hpc-rocket watch rocket.yml --jobid ${{ env.SLURM_JOB_ID }} 
         shell: bash
         continue-on-error: true
