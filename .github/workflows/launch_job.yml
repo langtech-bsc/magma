@@ -349,6 +349,11 @@ jobs:
           #Live status
           echo "Check the logs at: ${{ steps.mlflow.outputs.artifact_url }}"
           echo "Keep in mind that synchronization may take a little bit"
+
+          echo "\n========================================"
+          hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
+          echo "========================================"
+
           nohup $(while true; do
             # hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }} 
             running=$(hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}  | grep "RUNNING" | wc -l)
@@ -356,6 +361,11 @@ jobs:
             then
               nohup ml_flow -t sync > ${{ steps.mlflow.outputs.sync_dir }}/mlflow.log 2>&1 < /dev/null &
               echo "mlflow_pid=$!" >> $GITHUB_OUTPUT
+              
+              echo "\n========================================"
+              hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
+              echo "========================================"
+              
               if [ '${{ env.JOB_ENABLE_TUNNEL }}' = 'true' ]; then
                 SLURM_JOB_NODE=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "scontrol show hostname $(squeue -j ${{ env.SLURM_JOB_ID }} -o "%R" --noheader) | head -n 1)
                 echo $SLURM_JOB_NODE > ${{ steps.mlflow.outputs.sync_dir }}/debug.log
@@ -379,11 +389,6 @@ jobs:
             sleep 15
           done)  > ./tmp 2>&1 < /dev/null &
 
-          (while true; do
-            hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
-            echo ""
-            sleep 1m
-          done) &
           hpc-rocket watch rocket.yml --jobid ${{ env.SLURM_JOB_ID }} 
         shell: bash
         continue-on-error: true
