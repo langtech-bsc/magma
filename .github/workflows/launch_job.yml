@@ -383,6 +383,11 @@ jobs:
                  
                   fi
 
+                  echo ""
+                  hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
+                  echo ""
+                  
+
                   echo "      ___           ___           ___           ___                       ___           ___       "
                   echo "     /  /\         /__/\         /__/\         /__/\        ___          /__/\         /  /\      "
                   echo "    /  /::\        \  \:\        \  \:\        \  \:\      /  /\         \  \:\       /  /:/_     "
@@ -396,8 +401,7 @@ jobs:
                   echo "     \__\/         \__\/         \__\/         \__\/                     \__\/         \__\/      "
                    
                   # create here figlets: https://www.askapache.com/online-tools/figlet-ascii/
-                  echo ""
-                  hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
+                  
 
                   break
                 fi
