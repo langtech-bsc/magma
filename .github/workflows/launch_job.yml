@@ -387,7 +387,7 @@ jobs:
               break
             fi
             sleep 15
-          done)  > ./tmp 2>&1 < /dev/null &
+          done) < /dev/null &
 
           hpc-rocket watch rocket.yml --jobid ${{ env.SLURM_JOB_ID }} 
         shell: bash
