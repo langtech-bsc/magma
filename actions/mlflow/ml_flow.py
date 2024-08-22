@@ -4,6 +4,7 @@ import argparse
 from time import sleep
 import sysrsync
 from os import environ
+import os
 import traceback
 import mlflow
 from dotenv import load_dotenv, set_key
@@ -23,7 +24,7 @@ variables_name = {
 }
 
 tasks_and_variables = {
-    "schedule": ["url", "experiment", "run_name"],
+    "schedule": ["url", "experiment", "run_name", "destination"],
     "sync": ["url", "experiment", "user", "host", "src", "run_id", "destination"],
     "stop": ["url", "experiment", "user", "host", "src", "run_id", "destination"],
     "artifact_url": ["url", "experiment", "run_id"],
@@ -42,7 +43,9 @@ def check_variables(task, variables, file):
 
 
 class MlflowLogging():
-    def __init__(self, tracking_uri, experiment_name) -> None:
+    def __init__(self, tracking_uri, experiment_name, destination) -> None:
+        self.local_client = mlflow.tracking.MlflowClient(tracking_uri=destination)
+        self.tracking_uri = tracking_uri
         mlflow.set_tracking_uri(tracking_uri)
         mlflow.set_experiment(experiment_name)
 
@@ -63,7 +66,7 @@ class MlflowLogging():
         set_key(Path(env_file), key_to_set="RUN_ID", value_to_set=run.info.run_id)
         return run.info.run_id
 
-    def sync(self, remote_user, remote_host, source, destination):
+    def sync(self, remote_user, remote_host, source, destination, parent_run_id):
         try:
             sysrsync.run(
                     source_ssh=f"{remote_user}@{remote_host}",
@@ -72,7 +75,64 @@ class MlflowLogging():
                     strict_host_key_checking=False,
                     options=['-avh'])
 
-            mlflow.log_artifacts(destination)
+            # mlflow.log_artifacts(destination)
+            for root, _, files in os.walk(destination):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    mlflow.log_artifact(file_path)
+
+            runs = self.local_client.search_runs(experiment_ids=["0"])
+            for i, run in enumerate(runs):
+                run_id = run.info.run_id
+                exsiting_runs = mlflow.search_runs(filter_string=f"tags.uidd = '{run_id}'", output_format="list")
+                if len(exsiting_runs) > 0:
+                    nested_run_id = exsiting_runs[0].info.run_id
+                else:
+                    nested_run_id = mlflow.start_run(
+                            run_name=str(i+1),
+                            nested="True", 
+                            parent_run_id=parent_run_id, 
+                            tags={"uidd": run_id}
+                        ).info.run_id
+                    
+                    
+                for key in run.data.metrics.keys():
+                    metrics = self.local_client.get_metric_history(run_id, key)
+                    already_set = set([str(m) for m in mlflow.tracking.MlflowClient(tracking_uri=self.tracking_uri).get_metric_history(nested_run_id, key)])
+                    for metric in metrics:
+                        if str(metric) in already_set:
+                            continue
+                        mlflow.log_metric(
+                                            run_id=nested_run_id,
+                                            key=metric.key,
+                                            value=metric.value,
+                                            timestamp=metric.timestamp,
+                                            step=metric.step,
+                                            synchronous=True
+                                        )
+                        
+                        already_set.add(str(metric))
+
+                params = run.data.params
+
+                for key, value in params.items():
+                    self.remote_client.log_param(
+                            run_id=nested_run_id,
+                            key=key,
+                            value=value,
+                            synchronous=True
+                        )
+                    
+                tags = run.data.tags
+                for key, value in tags.items():
+                    if "." not in key:
+                        self.remote_client.set_tag(
+                                run_id=nested_run_id,
+                                key=key,
+                                value=value,
+                                synchronous=True
+
+                        )
             
         except:
             traceback.print_exc()
