@@ -118,10 +118,10 @@ class MlflowLogging():
                         already_set.add(str(metric))
 
                 params = run.data.params
-
+                params.pop("run_name")
                 for key, value in params.items():
                     mlflow.log_param(
-                            run_id=nested_run_id,
+                            # run_id=nested_run_id,
                             key=key,
                             value=value,
                             synchronous=True
@@ -131,7 +131,7 @@ class MlflowLogging():
                 for key, value in tags.items():
                     if "." not in key:
                         mlflow.set_tag(
-                                run_id=nested_run_id,
+                                # run_id=nested_run_id,
                                 key=key,
                                 value=value,
                                 synchronous=True
