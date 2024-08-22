@@ -1,13 +1,21 @@
 model_name=$JOB_FINETUNE_OUTPUT_MODEL_NAME
 
-export WANDB_PROJECT="instruction-tuning"
-export WANDB_NAME="${model_name}_${SLURM_JOBID}"
-export WANDB_MODE=offline
-export WANDB_INIT_TIMEOUT=600
 export PATH_RESULTS=${GPFS_FINETUNE_MODELS_REGISTRY_PATH}/${model_name}
-export WANDB_DIR=$PATH_RESULTS
-export WANDB_CONFIG_DIR=$WANDB_DIR/config
-mkdir -p $WANDB_DIR
+# export WANDB_PROJECT="instruction-tuning"
+# export WANDB_NAME="${model_name}_${SLURM_JOBID}"
+# export WANDB_MODE=offline
+# export WANDB_INIT_TIMEOUT=600
+# export WANDB_DIR=$PATH_RESULTS
+# export WANDB_CONFIG_DIR=$WANDB_DIR/config
+# mkdir -p $WANDB_DIR
+
+#export MLFLOW_EXPERIMENT_NAME="${model_name}_${SLURM_JOBID}"
+export MLFLOW_TRACKING_URI="file:///$HOME/mlflow"
+#export MLFLOW_FLATTEN_PARAMS="1"
+export MLFLOW_ENABLE_SYSTEM_METRICS_LOGGING="1"
+#export MLFLOW_RUN_ID="0"
+#export MLFLOW_NESTED_RUN="0"
+#export MLFLOW_EXPERIMENT_ID="0"
 
 export WORLD_SIZE=$SLURM_NTASKS
 export MASTER_PORT=29403
@@ -34,5 +42,6 @@ export RANK=\$SLURM_PROCID
 python -m fastchat.train.train \
     %FINETUNE_PARAMS%
     --output_dir $PATH_RESULTS \
-    --report_to wandb
+    --run_name $(basename "$PATH_RESULTS") \
+    --report_to mlflow
 EOF
