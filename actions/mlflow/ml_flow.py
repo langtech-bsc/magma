@@ -76,10 +76,10 @@ class MlflowLogging():
                     options=['-avh'])
 
             # mlflow.log_artifacts(destination)
-            for root, _, files in os.walk(destination):
-                for file in files:
-                    file_path = os.path.join(root, file)
-                    mlflow.log_artifact(file_path)
+            for item in os.listdir(destination):
+                item_path = os.path.join(destination, item)
+                if os.path.isfile(item_path):
+                    mlflow.log_artifact(item_path)
 
             runs = self.local_client.search_runs(experiment_ids=["0"])
             for i, run in enumerate(runs):
