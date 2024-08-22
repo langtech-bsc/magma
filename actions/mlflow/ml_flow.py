@@ -141,7 +141,7 @@ class MlflowLogging():
     def syncloop(self, remote_user, remote_host, source, destination, run_id):
         mlflow.start_run(run_id=run_id)
         while True:
-            self.sync(remote_user, remote_host, source, destination)
+            self.sync(remote_user, remote_host, source, destination, run_id)
             sleep(15)
 
     def get_artifact_url(self, run_id):
@@ -150,7 +150,7 @@ class MlflowLogging():
 
     def stop(self, remote_user, remote_host, source, destination, run_id, failed=False):
         mlflow.start_run(run_id=run_id)
-        self.sync(remote_user, remote_host, source, destination)
+        self.sync(remote_user, remote_host, source, destination, run_id)
         if failed:
             mlflow.end_run('FAILED')
         else:
