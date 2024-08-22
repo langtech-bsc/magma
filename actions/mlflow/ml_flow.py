@@ -157,7 +157,7 @@ class MlflowLogging():
             mlflow.end_run()
 
 def main(task, variables, env_file, failed):
-    client = MlflowLogging(variables["url"], variables["experiment"])
+    client = MlflowLogging(variables["url"], variables["experiment"], variables["destination"])
     if task == 'schedule':
         client.schedule(variables["run_name"], env_file)
     
