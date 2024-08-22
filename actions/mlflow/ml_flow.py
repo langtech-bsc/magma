@@ -44,7 +44,7 @@ def check_variables(task, variables, file):
 
 class MlflowLogging():
     def __init__(self, tracking_uri, experiment_name, destination) -> None:
-        self.local_client = mlflow.tracking.MlflowClient(tracking_uri=destination)
+        self.local_client = mlflow.tracking.MlflowClient(tracking_uri=destination + "/mlflow")
         self.tracking_uri = tracking_uri
         mlflow.set_tracking_uri(tracking_uri)
         mlflow.set_experiment(experiment_name)
