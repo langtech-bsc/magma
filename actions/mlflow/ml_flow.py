@@ -95,7 +95,7 @@ class MlflowLogging():
                             tags={"uidd": run_id}
                         ).info.run_id
                     
-                    
+                
                 for key in run.data.metrics.keys():
                     metrics = self.local_client.get_metric_history(run_id, key)
                     already_set = set([str(m) for m in mlflow.tracking.MlflowClient(tracking_uri=self.tracking_uri).get_metric_history(nested_run_id, key)])
