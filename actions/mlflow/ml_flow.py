@@ -116,7 +116,7 @@ class MlflowLogging():
                 params = run.data.params
 
                 for key, value in params.items():
-                    self.remote_client.log_param(
+                    mlflow.log_param(
                             run_id=nested_run_id,
                             key=key,
                             value=value,
@@ -126,7 +126,7 @@ class MlflowLogging():
                 tags = run.data.tags
                 for key, value in tags.items():
                     if "." not in key:
-                        self.remote_client.set_tag(
+                        mlflow.set_tag(
                                 run_id=nested_run_id,
                                 key=key,
                                 value=value,
@@ -174,7 +174,7 @@ def main(task, variables, env_file, failed):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Mlflow logging')
     parser.add_argument('-t', '--task', required=True, choices=tasks, help=f'Permited tasks: {tasks}')
-    parser.add_argument('-f', '--failed', required=False, default=False, action='store_true' ,help='Experiment Name')
+    parser.add_argument('-f', '--failed', required=False, default=False, action='store_true' ,help='Stop with failed status')
     parser.add_argument('-e', '--env', required=False, default=".env_mlflow", help='Env File')
     args = parser.parse_args()
     variables = get_env_variables(args.env)
