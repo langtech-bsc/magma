@@ -82,18 +82,22 @@ class MlflowLogging():
                     mlflow.log_artifact(item_path)
 
             runs = self.local_client.search_runs(experiment_ids=["0"])
-            for i, run in enumerate(runs):
+            for i, run in enumerate(runs[:1]): # For multiple runs use : for i, run in enumerate(runs)
                 run_id = run.info.run_id
-                exsiting_runs = mlflow.search_runs(filter_string=f"tags.uidd = '{run_id}'", output_format="list")
-                if len(exsiting_runs) > 0:
-                    nested_run_id = exsiting_runs[0].info.run_id
-                else:
-                    nested_run_id = mlflow.start_run(
-                            run_name=str(i+1),
-                            nested="True", 
-                            parent_run_id=parent_run_id, 
-                            tags={"uidd": run_id}
-                        ).info.run_id
+                nested_run_id = parent_run_id # Comment this to use nested run
+
+                # Un comment following lines to use nested run
+
+                # exsiting_runs = mlflow.search_runs(filter_string=f"tags.uidd = '{run_id}'", output_format="list")
+                # if len(exsiting_runs) > 0:
+                #     nested_run_id = exsiting_runs[0].info.run_id
+                # else:
+                #     nested_run_id = mlflow.start_run(
+                #             run_name=str(i+1),
+                #             nested="True", 
+                #             parent_run_id=parent_run_id, 
+                #             tags={"uidd": run_id}
+                #         ).info.run_id
                     
                 
                 for key in run.data.metrics.keys():
