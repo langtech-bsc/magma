@@ -25,6 +25,7 @@ export MASTER_ADDR=$head_node_ip
 
 
 export SLURM_CPU_BIND=none # Required for mp.
+export SRUN_CPUS_PER_TASK=$SLURM_CPUS_PER_TASK
 
 cat << EOF
 xxxxxxxxxxxxxxxxxxxxxxxxxxxx
