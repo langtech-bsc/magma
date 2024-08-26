@@ -1,5 +1,5 @@
 model_name=$JOB_FINETUNE_OUTPUT_MODEL_NAME
-export TRITON_CACHE_DIR="${JOB_PATH}.triton"
+export TRITON_CACHE_DIR="${JOB_PATH}/.triton"
 export PATH_RESULTS=${GPFS_FINETUNE_MODELS_REGISTRY_PATH}/${model_name}
 # export WANDB_PROJECT="instruction-tuning"
 # export WANDB_NAME="${model_name}_${SLURM_JOBID}"
