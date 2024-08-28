@@ -12,6 +12,7 @@
 set -e
 cd  $JOB_PATH
 source $JOB_PATH/remote_job.env
+export SINGULARITY_CACHEDIR=$JOB_PATH/.singularity
 
 IMAGES_PATH=$REMOTE_JOB_PATH
 #IMAGE=$(echo "$REMOTE_JOB_IMAGE" | sed 's/req_.*/req_null/') 
@@ -61,7 +62,7 @@ else
     echo "Building singularity"
     singularity build -F $TAR_NAME docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
 fi
-
+rm -rf $SINGULARITY_CACHEDIR
 mv $TAR_NAME $IMAGES_PATH/$IMAGE
 chmod g+rwx -R $IMAGES_PATH/$IMAGE
 chown :$SLURM_JOB_ACCOUNT "$IMAGES_PATH/$IMAGE" # It works only for MN5.
