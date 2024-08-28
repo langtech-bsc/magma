@@ -12,7 +12,7 @@
 # Load environment variables and modules
 source "$JOB_PATH/remote_job.env"
 module load singularity
-
+export SINGULARITY_CACHEDIR=$JOB_PATH/.singularity
 # Define paths and variables
 IMAGES_PATH="$REMOTE_JOB_PATH"
 IMAGE="$REMOTE_JOB_IMAGE"
@@ -64,6 +64,7 @@ if [ -f "$IMAGES_PATH/$OLD_IMAGE" ]; then
 fi
 
 # Move the new image to the images path
+rm -rf $SINGULARITY_CACHEDIR
 mv "$TMP_IMAGE" "$IMAGES_PATH/$IMAGE"
 chown :$SLURM_JOB_ACCOUNT "$IMAGES_PATH/$IMAGE"
 # rm -rf "$REQUIREMENTS_PATH/requirements"
