@@ -3,7 +3,7 @@
 #SBATCH --job-name=VLLM
 #SBATCH --output=logs/output.log
 #SBATCH --error=logs/error.log
-#SBATCH --qos=acc_
+#SBATCH --qos=acc_bscls
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=80
 #SBATCH --gres=gpu:4
