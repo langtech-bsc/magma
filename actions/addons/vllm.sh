@@ -19,7 +19,7 @@ if [ "$SLURM_JOB_NUM_NODES" -eq 1 ]; then
         --bind $GPFS_MODELS_REGISTRY_PATH:/$dir  \
         $GPFS_VLLM_SINGULARITY  \
         --model /$MODEL_NAME \
-        --served-model-name $GPFS_VLLM_MODEL \
+        --served-model-name $GPFS_VLLM_MODEL "tgi" \
         --host 0.0.0.0 \
         --port 8080 \
         --tensor-parallel-size $SLURM_GPUS_ON_NODE $(echo $JOB_VLLM_PARAMS) > $JOB_PATH/logs/vllm.log 2>&1 &
@@ -56,7 +56,7 @@ else
         --bind $GPFS_MODELS_REGISTRY_PATH:/$dir  \
         $GPFS_VLLM_SINGULARITY  \
         --model /$MODEL_NAME \
-        --served-model-name $GPFS_VLLM_MODEL \
+        --served-model-name $GPFS_VLLM_MODEL "tgi" \
         --host 0.0.0.0 \
         --port 8080 \
         --tensor-parallel-size $((SLURM_JOB_NUM_NODES * SLURM_GPUS_ON_NODE)) $(echo $JOB_VLLM_PARAMS) > $JOB_PATH/logs/vllm.log 2>&1 &
