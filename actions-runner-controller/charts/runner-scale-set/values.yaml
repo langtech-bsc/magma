@@ -19,7 +19,7 @@ template:
   spec:
     containers:
       - name: runner
-        image: projecteaina/actions-runner:fa8b7aa
+        image: projecteaina/actions-runner:3e6692a
         command:
           - /home/runner/run.sh
         env:
