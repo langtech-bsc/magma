@@ -30,6 +30,11 @@ else
     export SRUN_CPUS_PER_TASK=$SLURM_CPUS_PER_TASK
     export SLURM_CPU_BIND=none
 
+    export VLLM_LOGGING_LEVEL=DEBUG
+    export VLLM_TRACE_FUNCTION=1
+    export CUDA_LAUNCH_BLOCKING=1
+    export NCCL_DEBUG=TRACE
+
     head_node=$(scontrol show hostname | head -n 1)
     head_node_port=6379
     ip_head=$(srun --nodes=1 --ntasks=1 -w "$head_node" hostname --ip-address):$head_node_port
@@ -39,13 +44,13 @@ else
     # Start Ray head node on the first node (head node)
     echo "Run --head"
     srun --nodes=1 --ntasks-per-node=1 --nodelist=$head_node \
-        singularity exec --nv --bind $GPFS_MODELS_REGISTRY_PATH:/$dir $GPFS_VLLM_SINGULARITY ray start --block --head --port=$head_node_port &
+        nohup singularity exec --nv --bind $GPFS_MODELS_REGISTRY_PATH:/$dir $GPFS_VLLM_SINGULARITY ray start --block --head --port=$head_node_port &
 
 
     sleep 10
     # Start Ray worker nodes on all other nodes (excluding the head node)
     srun --nodes=$((SLURM_JOB_NUM_NODES - 1)) --ntasks-per-node=1 --exclude=$head_node \
-        singularity exec --nv --bind $GPFS_MODELS_REGISTRY_PATH:/$dir $GPFS_VLLM_SINGULARITY ray start --block --address $ip_head &
+        nohup singularity exec --nv --bind $GPFS_MODELS_REGISTRY_PATH:/$dir $GPFS_VLLM_SINGULARITY ray start --block --address $ip_head &
 
     sleep 20
     echo "======================Ray Status==========================="
