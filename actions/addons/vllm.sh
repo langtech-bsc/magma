@@ -44,10 +44,10 @@ else
 
     singularity exec --nv $GPFS_VLLM_SINGULARITY ray stop
     #export VLLM_PORT=$head_node_port
-    export VLLM_HOST_IP=$ip_addr
+    #export VLLM_HOST_IP=$ip_addr
     
     # Start Ray head node on the first node (head node)
-    echo "Run --head"
+    echo "Starting head on $head_node with IP $ip_addr"
     srun --nodes=1 --ntasks-per-node=1 --nodelist=$head_node \
         --export=ALL,VLLM_HOST_IP=$ip_addr \
         nohup singularity exec --nv --bind $GPFS_MODELS_REGISTRY_PATH:/$dir $GPFS_VLLM_SINGULARITY ray start --block --head --port=$head_node_port &
