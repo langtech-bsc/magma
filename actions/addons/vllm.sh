@@ -37,10 +37,13 @@ else
 
     head_node=$(scontrol show hostname | head -n 1)
     head_node_port=6379
-    ip_head=$(srun --nodes=1 --ntasks=1 -w "$head_node" hostname --ip-address):$head_node_port
+    ip_addr=$(srun --nodes=1 --ntasks=1 -w "$head_node" hostname --ip-address)
+    ip_head=$ip_addr:$head_node_port
 
     singularity exec --nv $GPFS_VLLM_SINGULARITY ray stop
-
+    export VLLM_PORT=$head_node_port
+    export VLLM_HOST_IP=$ip_addr
+    
     # Start Ray head node on the first node (head node)
     echo "Run --head"
     srun --nodes=1 --ntasks-per-node=1 --nodelist=$head_node \
