@@ -36,24 +36,35 @@ else
     export NCCL_DEBUG=TRACE
 
     head_node=$(scontrol show hostname | head -n 1)
+    worker_nodes=$(scontrol show hostname | grep -v "$head_node")
+    
     head_node_port=6379
     ip_addr=$(srun --nodes=1 --ntasks=1 -w "$head_node" hostname --ip-address)
     ip_head=$ip_addr:$head_node_port
 
     singularity exec --nv $GPFS_VLLM_SINGULARITY ray stop
-    export VLLM_PORT=$head_node_port
+    #export VLLM_PORT=$head_node_port
     export VLLM_HOST_IP=$ip_addr
     
     # Start Ray head node on the first node (head node)
     echo "Run --head"
     srun --nodes=1 --ntasks-per-node=1 --nodelist=$head_node \
+        --export=ALL,VLLM_HOST_IP=$ip_addr \
         nohup singularity exec --nv --bind $GPFS_MODELS_REGISTRY_PATH:/$dir $GPFS_VLLM_SINGULARITY ray start --block --head --port=$head_node_port &
-
 
     sleep 10
     # Start Ray worker nodes on all other nodes (excluding the head node)
-    srun --nodes=$((SLURM_JOB_NUM_NODES - 1)) --ntasks-per-node=1 --exclude=$head_node \
-        nohup singularity exec --nv --bind $GPFS_MODELS_REGISTRY_PATH:/$dir $GPFS_VLLM_SINGULARITY ray start --block --address $ip_head &
+    for node in $worker_nodes; do
+        worker_ip=$(srun --nodes=1 --ntasks=1 -w "$node" hostname --ip-address)
+        # Export the VLLM_HOST_IP for this worker node
+        echo "Starting worker on $node with IP $worker_ip"
+        srun --nodes=1 --ntasks=1 --nodelist="$node" \
+            --export=ALL,VLLM_HOST_IP=$worker_ip \
+            singularity exec --nv --bind $GPFS_MODELS_REGISTRY_PATH:/$dir $GPFS_VLLM_SINGULARITY ray start --block --address $ip_head &
+    
+        # Optionally, you can add a slight delay if needed for coordination
+        sleep 5
+    done
 
     sleep 20
     echo "======================Ray Status==========================="
