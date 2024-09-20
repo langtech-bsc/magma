@@ -50,10 +50,10 @@ else
     echo "Starting head on $head_node with IP $ip_addr"
 
     srun --nodes=1 --ntasks=1 --nodelist=$head_node bash <<EOF
-export VLLM_HOST_IP=$ip_addr
-export HOST_IP=$ip_addr
-singularity exec --nv --bind $GPFS_MODELS_REGISTRY_PATH:/$dir $GPFS_VLLM_SINGULARITY ray start --block --head --port=$head_node_port &
-EOF
+export VLLM_HOST_IP=\$ip_addr
+export HOST_IP=\$ip_addr
+singularity exec --nv --bind $GPFS_MODELS_REGISTRY_PATH:/$dir $GPFS_VLLM_SINGULARITY ray start --block --head --port=$head_node_port
+EOF &
 
 sleep 10
 
@@ -64,10 +64,10 @@ sleep 10
         echo "Starting worker on $node with IP $worker_ip"
     
         srun --nodes=1 --ntasks=1 --nodelist="$node" bash <<EOF
-export VLLM_HOST_IP=$worker_ip
-export HOST_IP=$worker_ip
-singularity exec --nv --bind $GPFS_MODELS_REGISTRY_PATH:/$dir $GPFS_VLLM_SINGULARITY ray start --block --address $ip_head &
-EOF
+export VLLM_HOST_IP=\$worker_ip
+export HOST_IP=\$worker_ip
+singularity exec --nv --bind $GPFS_MODELS_REGISTRY_PATH:/$dir $GPFS_VLLM_SINGULARITY ray start --block --address $ip_head
+EOF &
         sleep 5
     done
 
