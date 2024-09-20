@@ -49,31 +49,26 @@ else
     # Start Ray head node on the first node (head node)
     echo "Starting head on $head_node with IP $ip_addr"
 
-    (
-    srun --nodes=1 --ntasks=1 --nodelist=$head_node bash <<EOF
-export VLLM_HOST_IP=\$ip_addr
-export HOST_IP=\$ip_addr
-echo $VLLM_HOST_IP
-singularity exec --nv --bind $GPFS_MODELS_REGISTRY_PATH:/$dir $GPFS_VLLM_SINGULARITY ray start --block --head --port=$head_node_port
-EOF
-    ) &
+    srun --nodes=1 --ntasks=1 --nodelist=$head_node singularity exec --nv \
+    --bind $GPFS_MODELS_REGISTRY_PATH:/$dir \
+    --env VLLM_HOST_IP=$ip_add \
+    $GPFS_VLLM_SINGULARITY \
+    ray start --block --head --port=$head_node_port &
 
-sleep 10
+    sleep 10
 
     # Start Ray worker nodes on all other nodes (excluding the head node)
     for node in $worker_nodes; do
         worker_ip=$(srun --nodes=1 --ntasks=1 -w "$node" hostname --ip-address)
         # Export the VLLM_HOST_IP for this worker node
         echo "Starting worker on $node with IP $worker_ip"
-
-        (
-        srun --nodes=1 --ntasks=1 --nodelist="$node" bash <<EOF
-export VLLM_HOST_IP=\$worker_ip
-export HOST_IP=\$worker_ip
-echo $VLLM_HOST_IP
-singularity exec --nv --bind $GPFS_MODELS_REGISTRY_PATH:/$dir $GPFS_VLLM_SINGULARITY ray start --block --address $ip_head
-EOF
-        ) &
+        
+        srun --nodes=1 --ntasks=1 --nodelist="$node" singularity exec --nv \
+        --bind $GPFS_MODELS_REGISTRY_PATH:/$dir \
+        --env VLLM_HOST_IP=$worker_ip \
+        $GPFS_VLLM_SINGULARITY \
+        ray start --block --address $ip_head &
+        
         sleep 5
     done
 
