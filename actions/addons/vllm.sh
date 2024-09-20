@@ -53,6 +53,7 @@ else
     srun --nodes=1 --ntasks=1 --nodelist=$head_node bash <<EOF
 export VLLM_HOST_IP=\$ip_addr
 export HOST_IP=\$ip_addr
+echo $VLLM_HOST_IP
 singularity exec --nv --bind $GPFS_MODELS_REGISTRY_PATH:/$dir $GPFS_VLLM_SINGULARITY ray start --block --head --port=$head_node_port
 EOF
     ) &
@@ -69,6 +70,7 @@ sleep 10
         srun --nodes=1 --ntasks=1 --nodelist="$node" bash <<EOF
 export VLLM_HOST_IP=\$worker_ip
 export HOST_IP=\$worker_ip
+echo $VLLM_HOST_IP
 singularity exec --nv --bind $GPFS_MODELS_REGISTRY_PATH:/$dir $GPFS_VLLM_SINGULARITY ray start --block --address $ip_head
 EOF
         ) &
