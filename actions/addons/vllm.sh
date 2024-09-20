@@ -71,7 +71,7 @@ export VLLM_HOST_IP=\$worker_ip
 export HOST_IP=\$worker_ip
 singularity exec --nv --bind $GPFS_MODELS_REGISTRY_PATH:/$dir $GPFS_VLLM_SINGULARITY ray start --block --address $ip_head
 EOF
-        )&
+        ) &
         sleep 5
     done
 
