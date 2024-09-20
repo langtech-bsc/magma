@@ -30,10 +30,10 @@ else
     export SRUN_CPUS_PER_TASK=$SLURM_CPUS_PER_TASK
     export SLURM_CPU_BIND=none
 
-    export VLLM_LOGGING_LEVEL=DEBUG
-    export VLLM_TRACE_FUNCTION=1
-    export CUDA_LAUNCH_BLOCKING=1
-    export NCCL_DEBUG=TRACE
+    # export VLLM_LOGGING_LEVEL=DEBUG
+    # export VLLM_TRACE_FUNCTION=1
+    # export CUDA_LAUNCH_BLOCKING=1
+    # export NCCL_DEBUG=TRACE
 
     head_node=$(scontrol show hostname | head -n 1)
     worker_nodes=$(scontrol show hostname | grep -v "$head_node")
