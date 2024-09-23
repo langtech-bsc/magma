@@ -87,6 +87,7 @@ else
         --served-model-name $GPFS_VLLM_MODEL "tgi" \
         --host 0.0.0.0 \
         --port 8080 \
-        --tensor-parallel-size $((SLURM_JOB_NUM_NODES * SLURM_GPUS_ON_NODE)) $(echo $JOB_VLLM_PARAMS) > $JOB_PATH/logs/vllm.log 2>&1 &
+        --tensor-parallel-size $SLURM_GPUS_ON_NODE \
+        --pipeline-parallel-size $SLURM_JOB_NUM_NODES $(echo $JOB_VLLM_PARAMS) > $JOB_PATH/logs/vllm.log 2>&1 &
 
 fi
