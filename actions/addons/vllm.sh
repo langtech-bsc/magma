@@ -51,8 +51,8 @@ else
 
     srun --nodes=1 --ntasks=1 --nodelist=$head_node singularity exec --nv \
     --bind $GPFS_MODELS_REGISTRY_PATH:/$dir \
-    --env VLLM_HOST_IP=$ip_add \
-    $GPFS_VLLM_SINGULARITY \
+    --env HOST_IP=$ip_addr \
+    --env VLLM_HOST_IP=$ip_addr \
     ray start --block --head --port=$head_node_port &
 
     sleep 10
@@ -65,9 +65,9 @@ else
         
         srun --nodes=1 --ntasks=1 --nodelist="$node" singularity exec --nv \
         --bind $GPFS_MODELS_REGISTRY_PATH:/$dir \
+        --env HOST_IP=$worker_ip \
         --env VLLM_HOST_IP=$worker_ip \
-        $GPFS_VLLM_SINGULARITY \
-        ray start --block --address $ip_head &
+        $GPFS_VLLM_SINGULARITY ray start --block --address $ip_head &
         
         sleep 5
     done
@@ -79,6 +79,9 @@ else
 
     nohup singularity run --nv \
         --bind $GPFS_MODELS_REGISTRY_PATH:/$dir  \
+        --bind $GPFS_MODELS_REGISTRY_PATH:/$dir \
+        --env HOST_IP=$ip_addr \
+        --env VLLM_HOST_IP=$ip_addr \
         $GPFS_VLLM_SINGULARITY  \
         --model /$MODEL_NAME \
         --served-model-name $GPFS_VLLM_MODEL "tgi" \
