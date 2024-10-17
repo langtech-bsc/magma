@@ -4,9 +4,14 @@ if [ -n "$GPFS_JUPYTER_WORKING_DIR" ]; then
     BIND_WORKING_DIR="--bind $GPFS_JUPYTER_WORKING_DIR:/home/bsc/$USER/working_dir"
 fi
 
+
+mkdir -p $TMPDIR/.local
+source /gpfs/projects/bsc88/mlops/scripts/ienable.sh
+
 singularity exec --nv --no-home \
     --bind /gpfs:/gpfs \
     --bind $JOB_PATH:/home/bsc/$USER \
+    --bind $$TMPDIR/.local:/home/bsc/$USER/.local \
     $BIND_WORKING_DIR \
     $GPFS_JUPYTER_SINGULARITY jupyter-lab \
     --notebook-dir=/home/bsc/$USER \
