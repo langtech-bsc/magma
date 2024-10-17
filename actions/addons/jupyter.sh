@@ -4,7 +4,7 @@ if [ -n "$GPFS_JUPYTER_WORKING_DIR" ]; then
     BIND_WORKING_DIR="--bind $GPFS_JUPYTER_WORKING_DIR:/home/bsc/$USER/working_dir"
 fi
 
-LOCAL_DIR = $TMPDIR/.local
+LOCAL_DIR=$TMPDIR/.local
 mkdir -p $LOCAL_DIR
 source /gpfs/projects/bsc88/mlops/scripts/ienable.sh
 
