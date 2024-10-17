@@ -6,7 +6,7 @@ fi
 
 LOCAL_DIR=$TMPDIR/.local
 mkdir -p $LOCAL_DIR
-source /gpfs/projects/bsc88/mlops/scripts/ienable.sh
+#source /gpfs/projects/bsc88/mlops/scripts/ienable.sh
 
 singularity exec --nv --no-home \
     --bind /gpfs:/gpfs \
