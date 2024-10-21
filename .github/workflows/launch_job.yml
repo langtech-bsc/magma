@@ -340,7 +340,7 @@ jobs:
             echo "Mlflow API is not available, please contact MLOps team or try running the workflow again"
             echo "If you are running the workflow locally with act, ensure you have BSC VPN connected"
             #hpc-rocket cancel rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
-            echo "You can cancle the job, if you need mlflow: ${{ env.SLURM_JOB_ID }}"
+            echo "You can cancel the job, if you need mlflow: ${{ env.SLURM_JOB_ID }}"
             exit 1
           else
             echo "Check the logs at: ${{ steps.mlflow.outputs.artifact_url }}"
