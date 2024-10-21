@@ -106,7 +106,7 @@ github_app_installation_id:  9 bytes
 github_app_private_key:      1678 bytes
 ```
 
-Install Heml chart
+Install Helm chart
 
 ```bash
 GITHUB_CONFIG_URL="https://github.com/langtech-bsc"
