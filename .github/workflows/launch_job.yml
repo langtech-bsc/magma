@@ -429,6 +429,7 @@ jobs:
         run: | 
           ml_flow -t stop
           exit 0
+        continue-on-error: true
 
       - name: Check on failures
         if: steps.watch.outcome != 'success'
