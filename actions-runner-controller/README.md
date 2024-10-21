@@ -4,11 +4,13 @@ Follow Microk8s guide
 https://microk8s.io/#install-microk8s
 
 Enable hostpath-storage Microk8s addon
-    ```bash
-    microk8s enable hostpath-storage
-    ```
+
+```bash
+microk8s enable hostpath-storage
+```
     
 Install Helm
+
 ```bash
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash 
 ```
@@ -91,6 +93,7 @@ kubectl describe secret magma-github-app -n "${NAMESPACE}"
 ```
 
 Output 
+
 ```bash
 # Data
 ====
@@ -100,6 +103,7 @@ github_app_private_key:      1678 bytes
 ```
 
 Install Heml chart
+
 ```bash
 GITHUB_CONFIG_URL="https://github.com/langtech-bsc"
 NAMESPACE="arc-runners"
