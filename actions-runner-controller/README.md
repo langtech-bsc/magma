@@ -49,20 +49,20 @@ oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set-cont
 
 Create new GitHub app at [Github Apps Settings](https://github.com/organizations/langtech-bsc/settings/apps/new)
 
-      Fill the required fields as GitHub App name, Homepage URL
-      ![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/89402493-0e6f-40c3-a6b4-fa39828fbcb9/c90445b3-61a7-44d8-83bf-dd50999d4064/Untitled.png)
-      
-      Disable webhooks; Uncheck Active checkbox
-      ![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/89402493-0e6f-40c3-a6b4-fa39828fbcb9/fb424652-15ac-444f-a0c4-2ed43113697a/Untitled.png)
-      
-      At **permissions** → **Repository permissions** → Set **Actions** to **Access: Read and write**
-      
-      At **permissions** → **Organization permissions** → Set **Self-hosted runners**  to **Access: Read and write**
-    
-      Install the app in your organization  
-      **Organization → Settings → Developer Settings → GitHub App → Edit your app → Select Install App → Install in your organization**    
-    
-      On private key section click on **Generate a private key.** (Store it safely for later use).
+Fill the required fields as GitHub App name, Homepage URL
+![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/89402493-0e6f-40c3-a6b4-fa39828fbcb9/c90445b3-61a7-44d8-83bf-dd50999d4064/Untitled.png)
+
+Disable webhooks; Uncheck Active checkbox
+![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/89402493-0e6f-40c3-a6b4-fa39828fbcb9/fb424652-15ac-444f-a0c4-2ed43113697a/Untitled.png)
+
+At **permissions** → **Repository permissions** → Set **Actions** to **Access: Read and write**
+
+At **permissions** → **Organization permissions** → Set **Self-hosted runners**  to **Access: Read and write**
+
+Install the app in your organization  
+**Organization → Settings → Developer Settings → GitHub App → Edit your app → Select Install App → Install in your organization**    
+
+On private key section click on **Generate a private key.** (Store it safely for later use).
 
 Create the runners namespace
 
