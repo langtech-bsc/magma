@@ -6,7 +6,7 @@ This repository contains workflows and automation scripts for [Project Name]. Th
 
 - [Prerequisites](#prerequisites)
 - [Resources Deployment](#resources-deployment)
-  - [Helm Chart for GitHub Runners](#helm-chart-for-github-runners)
+  - [Helm Chart for GitHub Runners](actions-runner-controller/README.md)
   - [MLflow Deployment](#mlflow-deployment)
 - [Usage](#usage)
 - [Contributing](#contributing)
