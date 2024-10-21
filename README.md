@@ -20,5 +20,3 @@ Before running any of the GitHub Actions workflows in this repository, the follo
 2. **MLflow Server:** Set up for real-time tracking and monitoring of machine learning experiments.
 
 Ensure that you have access to a Kubernetes cluster and Helm installed in your local environment. The cluster should have sufficient resources for deploying the GitHub runners and the MLflow server.
-
-## Resources Deployment
