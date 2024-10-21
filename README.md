@@ -1,6 +1,6 @@
 # Magma
 
-This repository contains workflows and automation scripts for [Project Name]. The workflows are managed using GitHub Actions, and certain resources must be deployed beforehand to ensure the smooth execution of these workflows.
+A collection of automation workflows designed to simplify machine learning tasks in HPC.
 
 ## Table of Contents
 
