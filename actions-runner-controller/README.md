@@ -51,11 +51,13 @@ Create new GitHub app at [Github Apps Settings](https://github.com/organizations
 
 Fill the required fields as GitHub App name, Homepage URL
 
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/89402493-0e6f-40c3-a6b4-fa39828fbcb9/c90445b3-61a7-44d8-83bf-dd50999d4064/Untitled.png)
+![Register New App, fill the fields](https://github.com/user-attachments/assets/36cf9906-4d86-48a2-b2a0-f38c6d1531f7)
+
 
 Disable webhooks; Uncheck Active checkbox
 
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/89402493-0e6f-40c3-a6b4-fa39828fbcb9/fb424652-15ac-444f-a0c4-2ed43113697a/Untitled.png)
+![Disable webhooks](https://github.com/user-attachments/assets/f4dd0e78-8701-4913-8c5a-8e8ed88f5b9f)
+
 
 At **permissions** → **Repository permissions** → Set **Actions** to **Access: Read and write**
 
@@ -115,9 +117,9 @@ helm upgrade --install arc-runner-set \
 	--create-namespace \
 	--set githubConfigUrl="${GITHUB_CONFIG_URL}" \
 	--set-string "listenerTemplate.spec.containers[0].name=listener" \
-  --set-string listenerTemplate.metadata.annotations."prometheus\.io/scrape"=true \
-  --set-string listenerTemplate.metadata.annotations."prometheus\.io/path"=/metrics \
-  --set-string listenerTemplate.metadata.annotations."prometheus\.io/port"=8080 \
+        --set-string listenerTemplate.metadata.annotations."prometheus\.io/scrape"=true \
+	--set-string listenerTemplate.metadata.annotations."prometheus\.io/path"=/metrics \
+	--set-string listenerTemplate.metadata.annotations."prometheus\.io/port"=8080 \
 	-f actions-runner-controller/charts/runner-scale-set/values.yaml \
 	oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set
 ```
