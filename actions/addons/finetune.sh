@@ -35,9 +35,9 @@ word size: ${WORLD_SIZE}
 num nodes: ${SLURM_NNODES}
 xxxxxxxxxxxxxxxxxxxxxxxxxxxx
 EOF
-
+mkdir -r $JOB_LOGS_PATH/finetune
 #train <=> python -m fastchat.train.train
-srun singularity exec --nv /gpfs/projects/bsc88/singularity-images/fastchat-pytorch.sif bash <<EOF
+srun --output=%JOB_LOGS_PATH%/finetune/output_%t.log singularity exec --nv /gpfs/projects/bsc88/singularity-images/fastchat-pytorch.sif bash <<EOF
 export LOCAL_RANK=\$SLURM_LOCALID
 export RANK=\$SLURM_PROCID
 python -m fastchat.train.train \
