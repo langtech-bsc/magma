@@ -50,3 +50,16 @@ jobs:
           createPR: true
           description: 'Update Actions Runner Docker Image to projecteaina/actions-runner:${{ steps.vars.outputs.sha_short }}'
           message: 'Update Actions Runner Docker Image to projecteaina/actions-runner:${{ steps.vars.outputs.sha_short }}'
+      -
+        name: Update Image Version in the related HelmChart values.yaml gpfs
+        uses: OpsVerseIO/image-updater-action@0.1.0
+        with:
+          valueFile: 'actions-runner-controller/charts/runner-scale-set-gpfs/values.yaml'
+          propertyPath: 'template.spec.containers[0].image'
+          value: projecteaina/actions-runner:${{ steps.vars.outputs.sha_short }}
+          branch: update-chart-image/${{ steps.vars.outputs.sha_short }}
+          targetBranch: main
+          masterBranchName: main
+          createPR: true
+          description: 'Update Actions Runner Docker Image to projecteaina/actions-runner:${{ steps.vars.outputs.sha_short }}'
+          message: 'Update Actions Runner Docker Image to projecteaina/actions-runner:${{ steps.vars.outputs.sha_short }}'

@@ -1,0 +1,35 @@
+githubConfigUrl: https://github.com/langtech-bsc
+githubConfigSecret: magma-github-app
+maxRunners: 3
+minRunners: 1
+runnerGroup: default
+runnerScaleSetName: magma-runner-set-gpfs
+containerMode:
+  type: kubernetes
+  kubernetesModeWorkVolumeClaim:
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: microk8s-hostpath
+    resources:
+      requests:
+        storage: 5Gi
+  kubernetesModeServiceAccount:
+    annotations: null
+template:
+  spec:
+    containers:
+      - name: runner
+        image: projecteaina/actions-runner:0defe60
+        command:
+          - /home/runner/run.sh
+        env:
+          - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
+            value: 'false'
+        volumeMounts:
+          - name: gpfs
+            mountPath: /storage5
+    volumes:
+        - name: gpfs
+          hostPath:
+            path: /mnt/mn5/storage5
+            type: Directory
