@@ -6,7 +6,7 @@ on:
       runs_on:
         required: false
         type: string
-        default:  shell
+        default:  shell-ssd
       image:
         required: true
         type: string
