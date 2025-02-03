@@ -28,4 +28,9 @@ jobs:
           remote_user: ${{ secrets.REMOTE_USER}}
           remote_host: ${{ secrets.REMOTE_HOST }}
           ssh_secret_key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Remove docker build cache
+        if: always()
+        run: | 
+          docker builder prune -a -f
+        continue-on-error: true
 
