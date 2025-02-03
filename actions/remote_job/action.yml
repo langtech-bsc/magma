@@ -298,6 +298,7 @@ runs:
           # ssh ${{ steps.globals.outputs.SSH_OPTIONS }} ${{inputs.remote_user}}@${{inputs.remote_host}}  "chmod 660 -R ${{ inputs.remote_path }}"
           echo "Remove tar"
           rm ${NAME}.tar
+          docker builder prune -a -f #Remove all build cache
           echo "Done"
         else
           echo "Skip building image, since already exists."
