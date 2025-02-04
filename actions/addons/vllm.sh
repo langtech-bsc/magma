@@ -53,8 +53,8 @@ else
     --bind $GPFS_MODELS_REGISTRY_PATH:/$dir \
     --env HOST_IP=$ip_addr \
     --env VLLM_HOST_IP=$ip_addr \
-    --env NCCL_SOCKET_IFNAME=eno1 \
-    --env GLOO_SOCKET_IFNAME=eno1 \
+    --env NCCL_SOCKET_IFNAME=mlx5 \
+    --env GLOO_SOCKET_IFNAME=mlx5 \
     $GPFS_VLLM_SINGULARITY ray start --block --head --port=$head_node_port &
 
     sleep 10
@@ -69,8 +69,8 @@ else
         --bind $GPFS_MODELS_REGISTRY_PATH:/$dir \
         --env HOST_IP=$worker_ip \
         --env VLLM_HOST_IP=$worker_ip \
-        --env NCCL_SOCKET_IFNAME=eno1 \
-        --env GLOO_SOCKET_IFNAME=eno1 \
+        --env NCCL_SOCKET_IFNAME=mlx5 \
+        --env GLOO_SOCKET_IFNAME=mlx5 \
         $GPFS_VLLM_SINGULARITY ray start --block --address $ip_head &
         
         sleep 5
