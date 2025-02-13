@@ -41,7 +41,7 @@ EOF
 #train <=> python -m fastchat.train.train
 #--output=%JOB_LOGS_PATH%/finetune/output_%t.log \
 #--error=%JOB_LOGS_PATH%/finetune.err \
-srun singularity exec --nv /gpfs/projects/bsc88/singularity-images/fastchat-pytorch.sif bash <<EOF
+srun singularity exec --nv /gpfs/projects/bsc88/singularity-images/fastchat-pytorch-lora.sif bash <<EOF
 export LOCAL_RANK=\$SLURM_LOCALID
 export RANK=\$SLURM_PROCID
 python -m fastchat.train.train \
