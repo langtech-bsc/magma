@@ -87,7 +87,7 @@ on:
       slurm_command:
         value: ${{jobs.pre-job-per-branch.outputs.slurm_command}}
 jobs:
-  pre-job-per-branch:
+  pre-job-per-branch:/gpfs/scratch/bsc88/fine-tuned-models/salamandra-7b-instruct_tools
       runs-on: ${{inputs.runs_on}}
       outputs:
         job_name: ${{ steps.job_variables.outputs.job_name }}
