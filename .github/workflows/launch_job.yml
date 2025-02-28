@@ -81,7 +81,7 @@ on:
       vllm_singularity:
         required: false
         type: string
-        default: 'vllm-inference.sif'
+        default: 'vllm-openai-latest.sif'
 
       vllm_model:
         required: false
@@ -97,6 +97,11 @@ on:
         required: false
         type: boolean
         default: false
+      
+      finetune_singularity:
+        required: false
+        type: string
+        default: 'fastchat-latest.sif'
 
       finetune_params:
         required: false
@@ -104,6 +109,21 @@ on:
         default: ''
 
       finetune_output_model_name:
+        required: false
+        type: string
+        default: ''
+
+      enable_harness_eval:
+        required: false
+        type: boolean
+        default: false
+
+      harness_eval_singularity:
+        required: false
+        type: string
+        default: 'llmops-harness-eval-latest.sif'
+
+      harness_eval_params:
         required: false
         type: string
         default: ''
@@ -146,7 +166,11 @@ jobs:
       GPFS_VLLM_MODEL: ${{ inputs.vllm_model }}
 
       JOB_FINETUNE_ENABLE: ${{ inputs.enable_finetune }}
+      GPFS_FINETUNE_SINGULARITY: ${{ vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH }}/${{ inputs.finetune_singularity }}
       JOB_FINETUNE_OUTPUT_MODEL_NAME: ${{ inputs.finetune_output_model_name }}
+
+      JOB_HARNESS_EVAL_ENABLE: ${{ inputs.enable_harness_eval }}
+      GPFS_HARNESS_EVAL_SINGULARITY: ${{ vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH }}/${{ inputs.harness_eval_singularity }}
 
     steps:
       - uses: actions/checkout@v4
@@ -225,7 +249,11 @@ jobs:
           echo ""
           
           echo "JOB_FINETUNE_ENABLE: ${{env.JOB_FINETUNE_ENABLE}}"
+          echo "GPFS_FINETUNE_SINGULARITY: ${{env.GPFS_FINETUNE_SINGULARITY}}"
           echo "JOB_FINETUNE_OUTPUT_MODEL_NAME: ${{env.JOB_FINETUNE_OUTPUT_MODEL_NAME}}"
+          echo ""
+          echo "JOB_HARNESS_EVAL_ENABLE: ${{env.JOB_HARNESS_EVAL_ENABLE}}"
+          echo "GPFS_HARNESS_EVAL_SINGULARITY: ${{env.GPFS_HARNESS_EVAL_SINGULARITY}}"
           echo ""
           echo "JOB_SLEEP: ${{env.JOB_SLEEP}}"
           echo "REMOTE_JOB: ${{inputs.remote_job}}"
@@ -296,6 +324,8 @@ jobs:
           vllm: ${{ env.JOB_VLLM_ENABLE }}
           finetune: ${{ env.JOB_FINETUNE_ENABLE }}
           finetune_params: ${{ inputs.finetune_params }}
+          harness_eval: ${{ env.JOB_HARNESS_EVAL_ENABLE}}
+          harness_eval_params: ${{ inputs.harness_eval_params }}
           sleep: ${{ env.JOB_SLEEP }}
           email: ${{env.EMAIL}},${{secrets.USER_EMAIL}}
           job_path: ${{env.JOB_PATH}}

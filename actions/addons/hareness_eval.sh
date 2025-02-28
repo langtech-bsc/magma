@@ -1,0 +1,34 @@
+export TRITON_CACHE_DIR="${JOB_PATH}/.triton"
+export NUMBA_CACHE_DIR="${JOB_PATH}/cache_numba"
+export PATH_RESULTS=${GPFS_FINETUNE_MODELS_REGISTRY_PATH}/${model_name}
+
+export HF_DATASETS_OFFLINE="1"
+export HF_HOME=$GPFS_HF_HOME
+# export LD_LIBRARY_PATH=/apps/ACC/CUDA/12.3/targets/x86_64-linux/lib/stubs/:$LD_LIBRARY_PATH
+
+export TORCHDYNAMO_SUPPRESS_ERRORS=True
+export NUMEXPR_MAX_THREADS=64
+export VLLM_CONFIG_ROOT=$TMPDIR
+export VLLM_CACHE_ROOT=$TMPDIR
+
+
+# export WANDB_PROJECT="instruction-tuning"
+# export WANDB_NAME="${model_name}_${SLURM_JOBID}"
+# export WANDB_MODE=offline
+# export WANDB_INIT_TIMEOUT=600
+# export WANDB_DIR=$JOB_LOGS_PATH/wandb
+# export WANDB_CONFIG_DIR=$WANDB_DIR/config
+# mkdir -p $WANDB_DIR
+
+export MLFLOW_EXPERIMENT_NAME="HARNESS_${SLURM_JOBID}"
+export MLFLOW_TRACKING_URI="file://$JOB_LOGS_PATH/mlflow"
+export MLFLOW_FLATTEN_PARAMS="1"
+export MLFLOW_ENABLE_SYSTEM_METRICS_LOGGING="1"
+#export MLFLOW_RUN_ID="0"
+#export MLFLOW_NESTED_RUN="0"
+#export MLFLOW_EXPERIMENT_ID="0"
+
+singularity exec --nv $GPFS_HARNESS_EVAL_SINGULARITY bash <<EOF
+python -m lm_eval \
+    %HARNESS_EVAL_PARAMS%
+EOF

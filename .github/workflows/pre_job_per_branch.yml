@@ -70,7 +70,16 @@ on:
         value: ${{ jobs.pre-job-per-branch.outputs.finetune_params }}
       finetune_output_model_name: 
         value: ${{ jobs.pre-job-per-branch.outputs.finetune_output_model_name }}
+      finetune_singularity:
+        value: ${{jobs.pre-job-per-branch.outputs.finetune_singularity}}
 
+      enable_harness_eval: 
+        value: ${{ jobs.pre-job-per-branch.outputs.enable_harness_eval }}
+      harness_eval_params: 
+        value: ${{ jobs.pre-job-per-branch.outputs.harness_eval_params }}
+      harness_eval_singularity:
+        value: ${{jobs.pre-job-per-branch.outputs.harness_eval_singularity}}
+        
       slurm_sbatch_params:
         value: ${{jobs.pre-job-per-branch.outputs.slurm_sbatch_params}}
       slurm_command:
@@ -110,7 +119,12 @@ jobs:
         enable_finetune: ${{ steps.set_defaults.outputs.enable_finetune}}
         finetune_params: ${{ steps.finetune.outputs.finetune_params}}
         finetune_output_model_name: ${{ steps.finetune.outputs.finetune_output_model_name}}
+        finetune_singularity: ${{ steps.set_defaults.outputs.finetune_singularity }}
 
+        enable_harness_eval: ${{ steps.set_defaults.outputs.enable_harness_eval}}
+        harness_eval_params: ${{ steps.finetune.outputs.harness_eval_params}}
+        harness_eval_singularity: ${{ steps.set_defaults.outputs.harness_eval_singularity }}
+        
         slurm_sbatch_params: ${{ steps.slurm.outputs.sbatch_params}}
         slurm_command: ${{ steps.slurm.outputs.slurm_command}}
         
@@ -171,14 +185,18 @@ jobs:
           DEFAULT_JUPYTER_SINGULARITY: "python-jupyter.sif"
           DEFAULT_SINGULARITY_LDCONFIG: "false"
           DEFAULT_ENABLE_TGI: "false"
-          DEFAULT_TGI_SINGULARITY: "text-generation-inference.singularity.1.4.4.sif"
+          DEFAULT_TGI_SINGULARITY: "text-generation-inference-latest.sif"
           DEFAULT_TGI_MODEL: "Mixtral-8x7B-Instruct-v0.1"
           
           DEFAULT_ENABLE_VLLM: "false"
-          DEFAULT_VLLM_SINGULARITY: "text-generation-inference.singularity.1.4.4.sif"
+          DEFAULT_VLLM_SINGULARITY: "vllm-openai-latest.sif"
           DEFAULT_VLLM_MODEL: "Mixtral-8x7B-Instruct-v0.1"
 
           DEFAULT_ENABLE_FINETUNE: "false"
+          DEFAULT_FINETUNE_SINGULARITY: "fastchat-latest.sif"
+
+          DEFAULT_ENABLE_HARNESS_EVAL: "false"
+          DEFAULT_HARNESS_EVAL_SINGULARITY: "llmops-harness-eval-latest.sif" #"llmops-harness-eval-nemo-latest.sif"
 
           CURRENT_REPO_BRANCH: "${{ steps.job_variables.outputs.repo_branch }}"
 
@@ -245,9 +263,23 @@ jobs:
 
           # Set default for vllm.singularity
           if [ -z "${{ steps.yaml.outputs.vllm_singularity }}" ]; then
-          echo "vllm_singularity=${{ env.DEFAULT_VLLM_SINGULARITY }}" >> $GITHUB_OUTPUT
+            echo "vllm_singularity=${{ env.DEFAULT_VLLM_SINGULARITY }}" >> $GITHUB_OUTPUT
           else
-          echo "vllm_singularity=${{ steps.yaml.outputs.vllm_singularity }}" >> $GITHUB_OUTPUT
+            echo "vllm_singularity=${{ steps.yaml.outputs.vllm_singularity }}" >> $GITHUB_OUTPUT
+          fi
+
+          # Set default for finetune.singularity
+          if [ -z "${{ steps.yaml.outputs.finetune_singularity }}" ]; then
+            echo "finetune_singularity=${{ env.DEFAULT_FINETUNE_SINGULARITY }}" >> $GITHUB_OUTPUT
+          else
+            echo "finetune_singularity=${{ steps.yaml.outputs.finetune_singularity }}" >> $GITHUB_OUTPUT
+          fi
+
+          # Set default for finetune.singularity
+          if [ -z "${{ steps.yaml.outputs.harness_singularity }}" ]; then
+            echo "harness_singularity=${{ env.DEFAULT_HARNESS_EVAL_SINGULARITY }}" >> $GITHUB_OUTPUT
+          else
+            echo "harness_singularity=${{ steps.yaml.outputs.harness_singularity }}" >> $GITHUB_OUTPUT
           fi
 
           # Set default for vllm.model
@@ -288,13 +320,19 @@ jobs:
           # Set singularity
           echo "singularity=${SINGULARITY}" >> $GITHUB_OUTPUT
 
-          # Set default for vllm.enable
+          # Set default for finetune.enable
           if [ -z "${{ steps.yaml.outputs.finetune_enable }}" ]; then
-          echo "enable_finetune=${{ env.DEFAULT_ENABLE_FINETUNE }}" >> $GITHUB_OUTPUT
+            echo "enable_finetune=${{ env.DEFAULT_ENABLE_FINETUNE }}" >> $GITHUB_OUTPUT
           else
-          echo "enable_finetune=${{ steps.yaml.outputs.finetune_enable }}" >> $GITHUB_OUTPUT
+            echo "enable_finetune=${{ steps.yaml.outputs.finetune_enable }}" >> $GITHUB_OUTPUT
           fi
-          
+
+          # Set default for finetune.enable
+          if [ -z "${{ steps.yaml.outputs.harness_eval_enable }}" ]; then
+            echo "enable_harness_eval=${{ env.DEFAULT_ENABLE_HARNESS_EVAL }}" >> $GITHUB_OUTPUT
+          else
+            echo "enable_harness_eval=${{ steps.yaml.outputs.harness_eval_enable }}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Get singularity
         id: singularity
@@ -409,6 +447,13 @@ jobs:
           echo "finetune_params=$finetune_params" >> $GITHUB_OUTPUT
           echo "finetune_output_model_name=${{ steps.yaml.outputs.finetune_output_model_name }}" >> $GITHUB_OUTPUT
 
+      - name: Set harness eval params
+        id: harness_eval
+        if: ${{contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_harness_eval) }}
+        run: |
+          harness_eval_params=$(echo '${{ toJson(steps.yaml.outputs) }}' | grep -oP '"harness_eval_params_[0-9]*": "\K.*"' | sed  's/"$//' | awk '{print $0}' ORS='#' | sed 's/#$//' || true)
+          echo "harness_eval_params=$harness_eval_params" >> $GITHUB_OUTPUT
+            
       - name: Slurm
         id: slurm
         run: |
@@ -448,7 +493,14 @@ jobs:
           echo "install_reqs: ${{ steps.singularity.outputs.install_reqs }}"
           echo ""
           echo "enable_finetune: ${{ steps.set_defaults.outputs.enable_finetune }}"
-      
+          echo "finetune_singularity: ${{ steps.set_defaults.outputs.finetune_singularity }}"
+          echo "finetune_singularity: ${{ steps.set_defaults.outputs.finetune_singularity }}"
+          echo ""
+          echo "enable_harness_eval: ${{ steps.set_defaults.outputs.enable_harness_eval }}"
+          echo "harness_eval_singularity: ${{ steps.set_defaults.outputs.harness_eval_singularity }}"
+          echo "harness_eval_singularity: ${{ steps.set_defaults.outputs.harness_eval_singularity }}"
+
+
           
 
       - name: Verify the compatibility of fine-tuning with other tools.
@@ -457,12 +509,26 @@ jobs:
           ( contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_vllm ) || 
             contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_tgi) || 
             contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_singularity) || 
-            contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_jupyter) 
+            contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_jupyter) ||
+            contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_harness_eval )
           )
         run: |
           echo "When fine-tuning is enabled, no other tools can be activated or used."
           exit 1
+      - name: Verify the compatibility of harness-eval with other tools.
+        if: | 
+          contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_harness_eval ) &&
+          ( contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_vllm ) || 
+            contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_tgi) || 
+            contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_singularity) || 
+            contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_jupyter) ||
+            contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_finetune )
+          )
+        run: |
+          echo "When harness-eval is enabled, no other tools can be activated or used."
+          exit 1
 
+            
       - name: Check vllm and tgi enable.
         if: ${{contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_vllm ) && contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_tgi )}}
         run: |
