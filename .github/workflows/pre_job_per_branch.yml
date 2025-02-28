@@ -125,7 +125,7 @@ jobs:
 
         enable_harness_eval: ${{ steps.set_defaults.outputs.enable_harness_eval}}
         harness_eval_expriment_name: ${{ steps.set_defaults.outputs.harness_eval_expriment_name}}
-        harness_eval_params: ${{ steps.finetune.outputs.harness_eval_params}}
+        harness_eval_params: ${{ steps.harness_eval.outputs.harness_eval_params}}
         harness_eval_singularity: ${{ steps.set_defaults.outputs.harness_eval_singularity }}
         
         slurm_sbatch_params: ${{ steps.slurm.outputs.sbatch_params}}
@@ -279,10 +279,10 @@ jobs:
           fi
 
           # Set default for finetune.singularity
-          if [ -z "${{ steps.yaml.outputs.harness_singularity }}" ]; then
-            echo "harness_singularity=${{ env.DEFAULT_HARNESS_EVAL_SINGULARITY }}" >> $GITHUB_OUTPUT
+          if [ -z "${{ steps.yaml.outputs.harness_eval_singularity }}" ]; then
+            echo "harness_eval_singularity=${{ env.DEFAULT_HARNESS_EVAL_SINGULARITY }}" >> $GITHUB_OUTPUT
           else
-            echo "harness_singularity=${{ steps.yaml.outputs.harness_singularity }}" >> $GITHUB_OUTPUT
+            echo "harness_eval_singularity=${{ steps.yaml.outputs.harness_eval_singularity }}" >> $GITHUB_OUTPUT
           fi
 
           # Set default for vllm.model
@@ -464,7 +464,6 @@ jobs:
         if: ${{contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_harness_eval) }}
         run: |
           harness_eval_params=$(echo '${{ toJson(steps.yaml.outputs) }}' | grep -oP '"harness_eval_params_[0-9]*": "\K.*"' | sed  's/"$//' | awk '{print $0}' ORS='#' | sed 's/#$//' || true)
-          echo "$harness_eval_params"
           echo "harness_eval_params=$harness_eval_params" >> $GITHUB_OUTPUT
             
       - name: Slurm
@@ -511,7 +510,6 @@ jobs:
           echo ""
           echo "enable_harness_eval: ${{ steps.set_defaults.outputs.enable_harness_eval }}"
           echo "harness_eval_expriment_name: ${{ steps.set_defaults.outputs.harness_eval_expriment_name }}"
-          echo "harness_eval_singularity: ${{ steps.set_defaults.outputs.harness_eval_singularity }}"
           echo "harness_eval_singularity: ${{ steps.set_defaults.outputs.harness_eval_singularity }}"
 
 
