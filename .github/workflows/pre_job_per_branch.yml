@@ -464,6 +464,7 @@ jobs:
         if: ${{contains(fromJson('["true", true]'), steps.set_defaults.outputs.enable_harness_eval) }}
         run: |
           harness_eval_params=$(echo '${{ toJson(steps.yaml.outputs) }}' | grep -oP '"harness_eval_params_[0-9]*": "\K.*"' | sed  's/"$//' | awk '{print $0}' ORS='#' | sed 's/#$//' || true)
+          echo "$harness_eval_params"
           echo "harness_eval_params=$harness_eval_params" >> $GITHUB_OUTPUT
             
       - name: Slurm
