@@ -32,6 +32,16 @@ inputs:
     required: false
     default: ''
 
+  harness_eval:
+    description: "Inject harness eval"
+    required: false
+    default: false
+
+  harness_eval_params:
+    description: "Paremeters for harness eval sepearated by #"
+    required: false
+    default: ''
+
   sleep: 
     description: "Add sleep at the end of file"
     required: false
@@ -127,8 +137,24 @@ runs:
 
         echo "" >> file.tmp
         echo "" >> file.tmp
-        echo "Set finetune done."
+        echo "Set Finetune done."
 
+    - name: Set Harness eval
+      shell: bash
+      if: ${{ inputs.harness_eval == 'true' }}
+      run: |
+        echo "" >> file.tmp
+        cat ${{ github.action_path }}/harness_eval.sh >> file.tmp
+
+        sed -i "/%HARNESS_EVAL_PARAMS%/ {
+          r /dev/stdin
+          d
+        }" file.tmp <<< $(echo "${{inputs.harness_eval_params}}" | tr '#' '\n' | awk '{print "    " $0 " \\"}')
+
+        echo "" >> file.tmp
+        echo "" >> file.tmp
+        echo "Set Harness Eval done."
+        
     - name: Set last line
       shell: bash
       run: |
