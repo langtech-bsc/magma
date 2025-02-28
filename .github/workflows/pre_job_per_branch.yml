@@ -75,6 +75,8 @@ on:
 
       enable_harness_eval: 
         value: ${{ jobs.pre-job-per-branch.outputs.enable_harness_eval }}
+      harness_eval_expriment_name: 
+        value: ${{ jobs.pre-job-per-branch.outputs.harness_eval_expriment_name }}
       harness_eval_params: 
         value: ${{ jobs.pre-job-per-branch.outputs.harness_eval_params }}
       harness_eval_singularity:
@@ -122,6 +124,7 @@ jobs:
         finetune_singularity: ${{ steps.set_defaults.outputs.finetune_singularity }}
 
         enable_harness_eval: ${{ steps.set_defaults.outputs.enable_harness_eval}}
+        harness_eval_expriment_name: ${{ steps.set_defaults.outputs.harness_eval_expriment_name}}
         harness_eval_params: ${{ steps.finetune.outputs.harness_eval_params}}
         harness_eval_singularity: ${{ steps.set_defaults.outputs.harness_eval_singularity }}
         
@@ -329,11 +332,18 @@ jobs:
             echo "enable_finetune=${{ steps.yaml.outputs.finetune_enable }}" >> $GITHUB_OUTPUT
           fi
 
-          # Set default for finetune.enable
+          # Set default for harness_eval.enable
           if [ -z "${{ steps.yaml.outputs.harness_eval_enable }}" ]; then
             echo "enable_harness_eval=${{ env.DEFAULT_ENABLE_HARNESS_EVAL }}" >> $GITHUB_OUTPUT
           else
             echo "enable_harness_eval=${{ steps.yaml.outputs.harness_eval_enable }}" >> $GITHUB_OUTPUT
+          fi
+
+          # Set default for harness_eval.experiment_name
+          if [ -z "${{ steps.yaml.outputs.harness_eval_expriment_name }}" ]; then
+            echo "harness_eval_expriment_name=HARNESS" >> $GITHUB_OUTPUT
+          else
+            echo "harness_eval_expriment_name=${{ steps.yaml.outputs.harness_eval_expriment_name }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Get singularity
@@ -499,6 +509,7 @@ jobs:
           echo "finetune_singularity: ${{ steps.set_defaults.outputs.finetune_singularity }}"
           echo ""
           echo "enable_harness_eval: ${{ steps.set_defaults.outputs.enable_harness_eval }}"
+          echo "harness_eval_expriment_name: ${{ steps.set_defaults.outputs.harness_eval_expriment_name }}"
           echo "harness_eval_singularity: ${{ steps.set_defaults.outputs.harness_eval_singularity }}"
           echo "harness_eval_singularity: ${{ steps.set_defaults.outputs.harness_eval_singularity }}"
 
