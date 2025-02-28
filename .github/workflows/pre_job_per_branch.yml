@@ -266,20 +266,19 @@ jobs:
           # Set default for singularity
           if [ "${{ steps.yaml.outputs.singularity_enable }}" = "true" ]; then
             echo "enable_singularity=true" >> $GITHUB_OUTPUT
-            
-            if [ -z "${{ steps.yaml.outputs.singularity_name }}" ]; then
-              SINGULARITY=${{ env.CURRENT_REPO_BRANCH }}
+          fi
 
-            else
-              SINGULARITY=${{ steps.yaml.outputs.singularity_name }}
-            fi
-
-            if [ "${{ steps.yaml.outputs.singularity_sandbox }}" = "true" ]; then
-                echo "sandbox=true" >> $GITHUB_OUTPUT
-              else
-                echo "sif=.sif" >> $GITHUB_OUTPUT
-                echo "sandbox=false" >> $GITHUB_OUTPUT
-            fi
+          if [ -z "${{ steps.yaml.outputs.singularity_name }}" ]; then
+            SINGULARITY=${{ env.CURRENT_REPO_BRANCH }}
+          else
+            SINGULARITY=${{ steps.yaml.outputs.singularity_name }}
+          fi
+          
+          if [ "${{ steps.yaml.outputs.singularity_sandbox }}" = "true" ]; then
+            echo "sandbox=true" >> $GITHUB_OUTPUT
+          else
+            echo "sif=.sif" >> $GITHUB_OUTPUT
+            echo "sandbox=false" >> $GITHUB_OUTPUT
           fi
           
           if [ "$SINGULARITY" = "${{env.CURRENT_REPO_BRANCH}}" ]; then
