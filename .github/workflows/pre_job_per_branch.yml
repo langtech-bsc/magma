@@ -258,7 +258,10 @@ jobs:
           fi
 
           # Set vllm params
-          echo "vllm_params=${{ steps.yaml.outputs.vllm_params }}" >> $GITHUB_OUTPUT
+          if [[ -n "${{ steps.yaml.outputs.vllm_params }}" ]]; then
+            echo "vllm_params=${{ steps.yaml.outputs.vllm_params }}" >> $GITHUB_OUTPUT
+          fi
+         
 
           # Set default for singularity
           if [ "${{ steps.yaml.outputs.singularity_enable }}" = "true" ]; then
