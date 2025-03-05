@@ -11,8 +11,8 @@ export VLLM_CONFIG_ROOT=$TMPDIR
 export VLLM_CACHE_ROOT=$TMPDIR
 export OUTPUT_DIR=$JOB_PATH/harness_result
 export OUTPUT_PATH=$OUTPUT_DIR/${JOB_HARNESS_EVAL_EXPRIMENT_NAME}_${SLURM_JOBID}.json
+export OUTPUT_PATH=$OUTPUT_DIR
 mkdir -p $OUTPUT_DIR
-
 
 # export WANDB_PROJECT="instruction-tuning"
 # export WANDB_NAME="${model_name}_${SLURM_JOBID}"
