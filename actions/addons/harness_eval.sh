@@ -3,7 +3,7 @@ export NUMBA_CACHE_DIR="${JOB_PATH}/cache_numba"
 
 export HF_DATASETS_OFFLINE="1"
 export HF_HOME=$GPFS_HF_HOME
-# export LD_LIBRARY_PATH=/apps/ACC/CUDA/12.3/targets/x86_64-linux/lib/stubs/:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/apps/ACC/CUDA/12.3/targets/x86_64-linux/lib/stubs/:$LD_LIBRARY_PATH
 
 export TORCHDYNAMO_SUPPRESS_ERRORS=True
 export NUMEXPR_MAX_THREADS=64
