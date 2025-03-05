@@ -107,7 +107,7 @@ jobs:
         finetune_output_model_name: "${{ needs.pre-job.outputs.job_name }}-${{ needs.pre-job.outputs.finetune_output_model_name}}"
       
         enable_harness_eval: ${{ fromJson(needs.pre-job.outputs.enable_harness_eval) }}
-        harness_eval_expriment_name: ${{ needs.pre-job.outputs.harness_eval_expriment_name }}
+        harness_eval_experiment_name: ${{ needs.pre-job.outputs.harness_eval_experiment_name }}
         harness_eval_singularity: ${{ needs.pre-job.outputs.harness_eval_singularity }}
         harness_eval_params: ${{ needs.pre-job.outputs.harness_eval_params}}
         

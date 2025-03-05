@@ -123,7 +123,7 @@ on:
         type: string
         default: 'llmops-harness-eval-latest.sif'
 
-      harness_eval_expriment_name:
+      harness_eval_experiment_name:
         required: false
         type: string
         default: 'HARNESS'
@@ -175,7 +175,7 @@ jobs:
       JOB_FINETUNE_OUTPUT_MODEL_NAME: ${{ inputs.finetune_output_model_name }}
 
       JOB_HARNESS_EVAL_ENABLE: ${{ inputs.enable_harness_eval }}
-      JOB_HARNESS_EVAL_EXPRIMENT_NAME: ${{ inputs.harness_eval_expriment_name }}
+      JOB_HARNESS_EVAL_EXPERIMENT_NAME:: ${{ inputs.harness_eval_experiment_name }}
       GPFS_HARNESS_EVAL_SINGULARITY: ${{ vars.GPFS_SINGULARITY_IMAGE_REGISTRY_PATH }}/${{ inputs.harness_eval_singularity }}
 
     steps:
