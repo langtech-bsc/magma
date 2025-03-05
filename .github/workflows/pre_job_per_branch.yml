@@ -340,10 +340,10 @@ jobs:
           fi
 
           # Set default for harness_eval.experiment_name
-          if [ -z "${{ steps.yaml.outputs.harness_eval_expriment_name }}" ]; then
-            echo "harness_eval_expriment_name=HARNESS" >> $GITHUB_OUTPUT
+          if [ -z "${{ steps.yaml.outputs.harness_eval_experiment_name }}" ]; then
+            echo "harness_eval_experiment_name=HARNESS" >> $GITHUB_OUTPUT
           else
-            echo "harness_eval_expriment_name=${{ steps.yaml.outputs.harness_eval_expriment_name }}" >> $GITHUB_OUTPUT
+            echo "harness_eval_experiment_name=${{ steps.yaml.outputs.harness_eval_expriment_name }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Get singularity
