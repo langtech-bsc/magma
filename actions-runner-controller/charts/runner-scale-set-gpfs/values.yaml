@@ -19,7 +19,7 @@ template:
   spec:
     containers:
       - name: runner
-        image: projecteaina/actions-runner:0defe60
+        image: projecteaina/actions-runner:540234c
         command:
           - /home/runner/run.sh
         env:
@@ -29,7 +29,7 @@ template:
           - name: gpfs
             mountPath: /storage5
     volumes:
-        - name: gpfs
-          hostPath:
-            path: /mnt/mn5/storage5
-            type: Directory
+      - name: gpfs
+        hostPath:
+          path: /mnt/mn5/storage5
+          type: Directory
