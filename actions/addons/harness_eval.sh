@@ -31,7 +31,7 @@ export MLFLOW_ENABLE_SYSTEM_METRICS_LOGGING="1"
 #export MLFLOW_EXPERIMENT_ID="0"
 
 singularity exec --nv $GPFS_HARNESS_EVAL_SINGULARITY bash <<EOF
-python -m lm_eval \
+accelerate launch -m lm_eval \
     --output_path ${OUTPUT_PATH} \
     --experiment_name ${MLFLOW_EXPERIMENT_NAME} \
     %HARNESS_EVAL_PARAMS%
