@@ -1,5 +1,5 @@
 githubConfigUrl: https://github.com/langtech-bsc
-githubConfigSecret: magma-github-app
+githubConfigSecret: magma-github-app2
 maxRunners: 3
 minRunners: 1
 runnerGroup: default
