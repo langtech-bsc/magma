@@ -1,5 +1,6 @@
 echo "Launch VLLM endpoint"
 MODEL_NAME="$GPFS_VLLM_MODEL"
+rm -rf $JOB_PATH/.cache/vllm
 
 if [[ "$MODEL_NAME" != *"/"* ]]; then
     dir="data"
@@ -15,7 +16,8 @@ if [ "$SLURM_JOB_NUM_NODES" -eq 1 ]; then
     export SRUN_CPUS_PER_TASK=$SLURM_CPUS_PER_TASK
     export SLURM_CPU_BIND=none
 
-    nohup singularity run --nv \
+    nohup singularity run --nv --no-home \
+        --bind $JOB_PATH:/home/bsc/$USER \
         --bind $GPFS_MODELS_REGISTRY_PATH:/$dir  \
         $GPFS_VLLM_SINGULARITY  \
         --model /$MODEL_NAME \
@@ -49,11 +51,12 @@ else
     # Start Ray head node on the first node (head node)
     echo "Starting head on $head_node with IP $ip_addr"
 
-    srun --nodes=1 --ntasks=1 --nodelist=$head_node singularity exec --nv \
-    --bind $GPFS_MODELS_REGISTRY_PATH:/$dir \
-    --env HOST_IP=$ip_addr \
-    --env VLLM_HOST_IP=$ip_addr \
-    $GPFS_VLLM_SINGULARITY ray start --block --head --port=$head_node_port &
+    srun --nodes=1 --ntasks=1 --nodelist=$head_node singularity exec --nv --no-home \
+        --bind $JOB_PATH:/home/bsc/$USER \
+        --bind $GPFS_MODELS_REGISTRY_PATH:/$dir \
+        --env HOST_IP=$ip_addr \
+        --env VLLM_HOST_IP=$ip_addr \
+        $GPFS_VLLM_SINGULARITY ray start --block --head --port=$head_node_port &
 
     sleep 10
 
@@ -77,7 +80,8 @@ else
     singularity exec --nv $GPFS_VLLM_SINGULARITY ray status
     echo "==========================================================="
 
-    nohup singularity run --nv \
+    nohup singularity run --nv --no-home \
+        --bind $JOB_PATH:/home/bsc/$USER \
         --bind $GPFS_MODELS_REGISTRY_PATH:/$dir  \
         --bind $GPFS_MODELS_REGISTRY_PATH:/$dir \
         --env HOST_IP=$ip_addr \
