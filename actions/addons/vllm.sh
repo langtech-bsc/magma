@@ -44,7 +44,7 @@ else
     ip_addr=$(srun --nodes=1 --ntasks=1 -w "$head_node" hostname --ip-address)
     ip_head=$ip_addr:$head_node_port
 
-    singularity exec --nv $GPFS_VLLM_SINGULARITY ray stop
+    singularity exec --nv --no-home --bind $JOB_PATH:/home/bsc/$USER $GPFS_VLLM_SINGULARITY ray stop
     #export VLLM_PORT=$head_node_port
     #export VLLM_HOST_IP=$ip_addr
     
@@ -66,7 +66,8 @@ else
         # Export the VLLM_HOST_IP for this worker node
         echo "Starting worker on $node with IP $worker_ip"
         
-        srun --nodes=1 --ntasks=1 --nodelist="$node" singularity exec --nv \
+        srun --nodes=1 --ntasks=1 --nodelist="$node" singularity exec --nv --no-home \
+        --bind $JOB_PATH:/home/bsc/$USER \
         --bind $GPFS_MODELS_REGISTRY_PATH:/$dir \
         --env HOST_IP=$worker_ip \
         --env VLLM_HOST_IP=$worker_ip \
