@@ -299,6 +299,7 @@ runs:
           echo "Remove tar"
           rm ${NAME}.tar
           docker builder prune -a -f #Remove all build cache
+          docker system prune --all --force #remove unsude images
           echo "Done"
         else
           echo "Skip building image, since already exists."
