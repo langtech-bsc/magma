@@ -32,5 +32,6 @@ jobs:
         if: always()
         run: | 
           docker builder prune -a -f
+          docker system prune --all --force
         continue-on-error: true
 
