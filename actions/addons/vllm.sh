@@ -89,7 +89,6 @@ else
 
     nohup singularity run --nv --no-home \
         --bind $JOB_PATH:/home/bsc/$USER \
-        --bind $GPFS_MODELS_REGISTRY_PATH:/$dir  \
         --bind $GPFS_MODELS_REGISTRY_PATH:/$dir \
         --env HOST_IP=$ip_addr \
         --env VLLM_HOST_IP=$ip_addr \
