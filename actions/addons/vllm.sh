@@ -84,7 +84,7 @@ else
 
     sleep 20
     echo "======================Ray Status==========================="
-    singularity exec --nv $GPFS_VLLM_SINGULARITY ray status
+    singularity exec --nv --no-home --bind $JOB_PATH:/home/bsc/$USER --bind $GPFS_MODELS_REGISTRY_PATH:/$dir $GPFS_VLLM_SINGULARITY ray status
     echo "==========================================================="
 
     nohup singularity run --nv --no-home \
