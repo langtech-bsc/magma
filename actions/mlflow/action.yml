@@ -60,7 +60,7 @@ runs:
         cat ${{ github.action_path }}/ml_flow.py | tee ml_flow.py > /dev/null
         chmod +x ml_flow.py
         rm -f /usr/bin/ml_flow
-        sudo ln -s $(pwd)/ml_flow.py /usr/bin/ml_flow
+        ln -s $(pwd)/ml_flow.py /usr/bin/ml_flow
 
     - name: Create destination directory
       shell: bash
