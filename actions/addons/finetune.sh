@@ -42,7 +42,7 @@ EOF
 #--output=%JOB_LOGS_PATH%/finetune/output_%t.log \
 #--error=%JOB_LOGS_PATH%/finetune.err \
 srun singularity exec --nv \
---bind /gpfs/projects/bsc88/mlops/FastChat/fastchat:/FastChat $GPFS_FINETUNE_SINGULARITY bash <<EOF
+--bind /gpfs/projects/bsc88/mlops/FastChat/fastchat:/FastChat/fastchat $GPFS_FINETUNE_SINGULARITY bash <<EOF
 export LOCAL_RANK=\$SLURM_LOCALID
 export RANK=\$SLURM_PROCID
 python -m fastchat.train.train \
