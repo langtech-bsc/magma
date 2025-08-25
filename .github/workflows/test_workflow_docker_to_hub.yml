@@ -1,0 +1,20 @@
+name: Launch docker to hub
+on:
+  workflow_dispatch:
+
+
+jobs:
+  docker-to-hub:
+    uses: ./.github/workflows/docker_to_hub.yml
+    secrets: inherit
+    with:
+      runs_on: shell
+      dockerfile: Dockerfile
+      only_if_changed_dir: ""
+      image_name: org/test      # <-- change to your image
+      registry: ghcr.io               # empty = Docker Hub
+      tag_strategy: branch            # random | branch | sha | custom
+      custom_tag: ""                  # used if tag_strategy=custom
+      push_latest: true
+      base_branch: main
+      file_to_update: docker-compose.yml
