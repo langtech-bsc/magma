@@ -1,0 +1,241 @@
+name: Reusable • Build & Push Docker, update file, and PR
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        required: false
+        type: string
+        default: ubuntu-latest
+      dockerfile:
+        description: Path to the Dockerfile
+        required: false
+        default: Dockerfile
+        type: string
+      only_if_changed_dir:
+        description: >-
+          Directory to watch for changes. If empty, always run.
+          When set, the workflow skips build/push if no changes in this dir since last commit.
+        required: false
+        default: ""
+        type: string
+      image_name:
+        description: Container image name, e.g. org/app (no registry prefix)
+        required: true
+        type: string
+      registry:
+        description: >-
+          Registry hostname, e.g. ghcr.io or registry.example.com. Leave empty for Docker Hub.
+        required: false
+        default: ""
+        type: string
+      tag_strategy:
+        description: Tag strategy :random | branch | sha | custom
+        required: false
+        default: random
+        type: string
+      custom_tag:
+        description: Custom tag value (used only when tag_strategy=custom)
+        required: false
+        default: ""
+        type: string
+      push_latest:
+        description: Also push :latest
+        required: false
+        default: true
+        type: boolean
+      base_branch:
+        description: Opens a PR into base branch
+        required: true
+        type: string
+      file_to_update:
+        description: >-
+          Path to YAML file to update with the new image tag (e.g. docker-compose.yml, values.yaml).
+          Leave empty to skip updating any file.
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  docker:
+    name: Build, Push & Update
+    runs-on: ${{ inputs.runs_on }}
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      image: ${{ steps.prep.outputs.full_image }}
+      tag: ${{ steps.prep.outputs.tag }}
+      image_ref: ${{ steps.prep.outputs.full_image }}:${{ steps.prep.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # For PRs, checkout the head branch
+          ref: ${{ github.head_ref || github.ref_name }}
+          persist-credentials: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Decide if we should run (dir changed gate)
+        if: ${{ inputs.only_if_changed_dir != '' }}
+        id: gate
+        shell: bash
+        run: |
+          set -euo                                                                                      
+          git fetch --prune --unshallow || true
+          if git rev-parse HEAD^ >/dev/null 2>&1; then RANGE="HEAD^..HEAD"; else RANGE="HEAD"; fi
+          DIR="${{ inputs.only_if_changed_dir }}"
+          if git diff --quiet $RANGE -- "$DIR/"; then
+            echo "No changes detected under $DIR. Skipping the rest of the job."
+            echo "SHOULD_RUN=false" >> $GITHUB_ENV
+          else
+            echo "Changes detected under $DIR. Proceeding."
+            echo "SHOULD_RUN=true" >> $GITHUB_ENV
+          fi
+
+      - name: Default run gate (no dir specified)
+        if: ${{ inputs.only_if_changed_dir == '' }}
+        run: echo "SHOULD_RUN=true" >> $GITHUB_ENV
+
+      - name: Prepare variables (tag, context, image refs)
+        if: env.SHOULD_RUN == 'true'
+        id: prep
+        shell: bash
+        run: |
+          set -euo pipefail
+          DOCKERFILE='${{ inputs.dockerfile }}'
+          CONTEXT_DIR="$(dirname "$DOCKERFILE")"
+          [ -z "$CONTEXT_DIR" ] && CONTEXT_DIR='.'
+          echo "context_dir=$CONTEXT_DIR" >> "$GITHUB_OUTPUT"
+
+          # Short SHA
+          SHA_SHORT=$(git rev-parse --short HEAD)
+          echo "sha_short=$SHA_SHORT" >> "$GITHUB_OUTPUT"
+
+          # Sanitize branch/ref name to be a valid Docker tag
+          REF_NAME="${GITHUB_REF_NAME}"
+          BRANCH_SANITIZED=$(echo "$REF_NAME" | tr '[:upper:]' '[:lower:]' | sed -E 's#[^a-z0-9._-]+#-#g' | sed -E 's#-+#-#g' | sed -E 's#(^-|-$)##g')
+          echo "branch_sanitized=$BRANCH_SANITIZED" >> "$GITHUB_OUTPUT"
+
+          # Tag selection
+          case "${{ inputs.tag_strategy }}" in
+            branch) TAG="$BRANCH_SANITIZED" ;;
+            sha) TAG="$SHA_SHORT" ;;
+            custom) TAG='${{ inputs.custom_tag }}' ;;
+            random|*) TAG="$(date -u +%Y%m%d%H%M%S)-$SHA_SHORT" ;;
+          esac
+          if [ -z "$TAG" ]; then echo "Tag resolved to empty string" && exit 1; fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+          IMG='${{ inputs.image_name }}'
+          REG='${{ inputs.registry }}'
+          if [ -n "$REG" ]; then FULL_IMAGE="$REG/$IMG"; else FULL_IMAGE="$IMG"; fi
+          echo "full_image=$FULL_IMAGE" >> "$GITHUB_OUTPUT"
+
+          TAGS="$FULL_IMAGE:$TAG"
+          if [ '${{ inputs.push_latest }}' = 'true' ]; then TAGS="$TAGS, $FULL_IMAGE:latest"; fi
+          echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to registry (custom registry)
+        if: env.SHOULD_RUN == 'true' && inputs.registry != ''
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ inputs.registry }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Log in to Docker Hub
+        if: env.SHOULD_RUN == 'true' && inputs.registry == ''
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Set up QEMU
+        if: env.SHOULD_RUN == 'true'
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set up Docker Buildx
+        if: env.SHOULD_RUN == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push image
+        if: env.SHOULD_RUN == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ steps.prep.outputs.context_dir }}
+          file: ${{ inputs.dockerfile }}
+          push: true
+          tags: ${{ steps.prep.outputs.tags }}
+
+      - name: Update image tag in file (if provided)
+        if: env.SHOULD_RUN == 'true' && inputs.file_to_update != ''
+        id: update_file
+        shell: bash
+        run: |
+          set -euo pipefail
+          ls
+          FILE='${{ inputs.file_to_update }}'
+          IMG_NAME='${{ steps.prep.outputs.FULL_IMAGE }}'
+          NEW_TAG='${{ steps.prep.outputs.tag }}'
+
+          if [ ! -f "$FILE" ]; then
+            echo "::warning::File $FILE not found; skipping"
+            exit 0
+          fi
+
+          echo "Looking for image entries matching: $IMG_NAME in $FILE"
+          if grep -Eq "image:\s*$IMG_NAME(:[A-Za-z0-9._-]+)?\s*$" "$FILE"; then
+            sed -E -i "s#(image:\s*$IMG_NAME)(:[A-Za-z0-9._-]+)?(\s*)$#\1:$NEW_TAG\3#g" "$FILE"
+            git add "$FILE"
+          else
+            echo "::warning::No matching image entry found; skipping edit"
+          fi
+          cat $FILE
+
+      - name: Check if there are staged changes
+        if: env.SHOULD_RUN == 'true' && inputs.file_to_update != ''
+        id: has_changes
+        shell: bash
+        run: |
+          if git diff --staged --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit & push changes back to PR branch
+        if: env.SHOULD_RUN == 'false' && github.event_name == 'pull_request' && steps.has_changes.outputs.changed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git commit -m "chore(file): update ${{ inputs.image_name }} tag to ${{ steps.prep.outputs.tag }}"
+          git push origin "HEAD:${{ github.head_ref }}"
+
+      - name: Create Pull Request with changes (for push events)
+        if: env.SHOULD_RUN == 'false' && github.event_name == 'push' && steps.has_changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          title: "chore(file): bump ${{ inputs.image_name }} to ${{ steps.prep.outputs.tag }}"
+          commit-message: "chore(file): update ${{ inputs.image_name }} tag to ${{ steps.prep.outputs.tag }}"
+          body: |
+            Automated update from reusable workflow.
+
+            * Image: `${{ steps.prep.outputs.full_image }}`
+            * Tag: `${{ steps.prep.outputs.tag }}`
+          branch: chore/update-file/${{ steps.prep.outputs.branch_sanitized }}-${{ steps.prep.outputs.tag }}
+          base: ${{ inputs.base_branch }}
+          delete-branch: true
+          signoff: false
+          labels: automation, docker
+
+      - name: Summary
+        if: env.SHOULD_RUN == 'true'
+        run: |
+          echo "Built & pushed: ${{ steps.prep.outputs.full_image }}:${{ steps.prep.outputs.tag }}"
+          if [ '${{ inputs.push_latest }}' = 'true' ]; then
+            echo "Also pushed: ${{ steps.prep.outputs.full_image }}:latest"; fi
+          echo "File updated: ${{ inputs.file_to_update != '' && 'yes' || 'no' }}"
