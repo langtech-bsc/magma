@@ -75,7 +75,7 @@ jobs:
           # For PRs, checkout the head branch
           ref: ${{ github.head_ref || github.ref_name }}
           persist-credentials: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.TOKEN_GITHUB }}
 
       - name: Decide if we should run (dir changed gate)
         if: ${{ inputs.only_if_changed_dir != '' }}
