@@ -187,8 +187,8 @@ jobs:
           exclude: 'SSH_PRIVATE_KEY'
           json: ${{ toJson(secrets) }}
           name: 'secret'
-
-      - uses: langtech-bsc/magma/actions/set_secrets_to_env_action@main
+      # langtech-bsc/magma/actions/set_secrets_to_env_action@main
+      - uses: langtech-bsc/actonaut/tree/add-actions/tools/mlflow@add-actions
         with:
           must_exist: 'MLFLOW_TRACKING_SERVER_URL,GPFS_SINGULARITY_IMAGE_REGISTRY_PATH,GPFS_MODELS_REGISTRY_PATH'
           json: ${{ toJson(vars) }}
