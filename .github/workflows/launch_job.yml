@@ -187,8 +187,8 @@ jobs:
           exclude: 'SSH_PRIVATE_KEY'
           json: ${{ toJson(secrets) }}
           name: 'secret'
-      # langtech-bsc/magma/actions/set_secrets_to_env_action@main
-      - uses: langtech-bsc/actonaut/tree/add-actions/tools/mlflow@add-actions
+          
+      - uses: langtech-bsc/magma/actions/set_secrets_to_env_action@main
         with:
           must_exist: 'MLFLOW_TRACKING_SERVER_URL,GPFS_SINGULARITY_IMAGE_REGISTRY_PATH,GPFS_MODELS_REGISTRY_PATH'
           json: ${{ toJson(vars) }}
@@ -359,7 +359,7 @@ jobs:
       
       - name: Setup mlflow
         id: mlflow
-        uses: langtech-bsc/magma/actions/mlflow@main
+        uses: langtech-bsc/actonaut/tree/add-actions/tools/mlflow@add-actions # langtech-bsc/magma/actions/mlflow@main
         with:
           experiment_name: ${GITHUB_REPOSITORY#$GITHUB_REPOSITORY_OWNER/}
           remote_host: ${{ secrets.REMOTE_HOST }}
