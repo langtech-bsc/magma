@@ -359,7 +359,7 @@ jobs:
       
       - name: Setup mlflow
         id: mlflow
-        uses: langtech-bsc/actonaut/tree/add-actions/tools/mlflow@add-actions # langtech-bsc/magma/actions/mlflow@main
+        uses: langtech-bsc/actonaut/tools/mlflow@add-actions@add-actions # langtech-bsc/magma/actions/mlflow@main
         with:
           experiment_name: ${GITHUB_REPOSITORY#$GITHUB_REPOSITORY_OWNER/}
           remote_host: ${{ secrets.REMOTE_HOST }}
