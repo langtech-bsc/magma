@@ -45,7 +45,7 @@ srun singularity exec --nv \
 --bind /gpfs/projects/bsc88/mlops/FastChat/fastchat:/FastChat/fastchat $GPFS_FINETUNE_SINGULARITY bash <<EOF
 export LOCAL_RANK=\$SLURM_LOCALID
 export RANK=\$SLURM_PROCID
-python -m fastchat.train.train \
+python -m fastchat.train.train_mem \
     %FINETUNE_PARAMS%
     --output_dir $PATH_RESULTS \
     --run_name $(basename "$PATH_RESULTS") \
