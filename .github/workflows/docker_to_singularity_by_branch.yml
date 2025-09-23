@@ -35,11 +35,11 @@ jobs:
       remote_job: "build"
       remote_job_sandbox: false
 
-  install: # If you need to remove this part, you will need to modify also /action/remote_jobs/build.
-    needs:  [build]
-    uses: langtech-bsc/magma/.github/workflows/install_requirements_online.yml@main
-    secrets: inherit
-    with:
-      job_path: ${{ needs.pre-job.outputs.job_path }}/install
-      image: ${{ needs.pre-job.outputs.branch }}
-      old_image: ${{ needs.pre-job.outputs.branch }}
+  # install: # If you need to remove this part, you will need to modify also /action/remote_jobs/build.
+  #   needs:  [build]
+  #   uses: langtech-bsc/magma/.github/workflows/install_requirements_online.yml@main
+  #   secrets: inherit
+  #   with:
+  #     job_path: ${{ needs.pre-job.outputs.job_path }}/install
+  #     image: ${{ needs.pre-job.outputs.branch }}
+  #     old_image: ${{ needs.pre-job.outputs.branch }}
