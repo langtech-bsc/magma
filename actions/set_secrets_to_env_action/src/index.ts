@@ -30,7 +30,7 @@ export default async function run(): Promise<void> {
 
     // Check for required secrets
     for (const key of requiredSecrets.split(",")) {
-      const secretValue = secrets[key.trim()];
+      const secretValue = secrets[key.trim()]?.trim();
       if (!secretValue) {
         core.error(`Required ${name} '${key}' is not set.`);
         secretsError = true;
@@ -44,9 +44,10 @@ export default async function run(): Promise<void> {
       core.setFailed("Required secrets or environment variables are missing.");
     }
     else{
-      for (const key of Object.keys(secrets)) {
+      for (let key of Object.keys(secrets)) {
+        key = key.trim()
         if (!excludeSecrets.includes(key)){
-          core.exportVariable(key, secrets[key])
+          core.exportVariable(key, secrets[key].trim())
           core.info(`Exported secret ${key}`)
         }
       }
