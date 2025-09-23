@@ -379,7 +379,8 @@ jobs:
             echo "You can cancel the job, if you need mlflow: ${{ env.SLURM_JOB_ID }}"
             exit 1
           else
-            echo "Check the logs at: ${{ steps.mlflow.outputs.artifact_url }}"
+            echo "Check the logs at:"
+            echo "${{ steps.mlflow.outputs.artifact_url }}"
             echo "Keep in mind that synchronization may take a little bit"
           fi
         continue-on-error: true
@@ -388,7 +389,8 @@ jobs:
         id: watch
         run: | 
           #Live status
-          echo "Check the logs at: ${{ steps.mlflow.outputs.artifact_url }}"
+          echo "Check the logs at:"
+          echo "${{ steps.mlflow.outputs.artifact_url }}"
           echo "Keep in mind that synchronization may take a little bit"
 
           hpc-rocket status rocket.yml --jobid ${{ env.SLURM_JOB_ID }}
