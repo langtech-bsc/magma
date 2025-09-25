@@ -36,14 +36,10 @@ word size: ${WORLD_SIZE}
 num nodes: ${SLURM_NNODES}
 xxxxxxxxxxxxxxxxxxxxxxxxxxxx
 EOF
-#mkdir -p $JOB_LOGS_PATH/finetune
-#echo "You can find all outputs log here: %JOB_LOGS_PATH%/finetune/"
 
-#train <=> python -m fastchat.train.train
-#--output=%JOB_LOGS_PATH%/finetune/output_%t.log \
-#--error=%JOB_LOGS_PATH%/finetune.err \
+# --bind /gpfs/projects/bsc88/mlops/FastChat/fastchat:/FastChat/fastchat
 srun singularity exec --nv \
---bind /gpfs/projects/bsc88/mlops/FastChat/fastchat:/FastChat/fastchat $GPFS_FINETUNE_SINGULARITY bash <<EOF
+$GPFS_FINETUNE_SINGULARITY bash <<EOF
 export LOCAL_RANK=\$SLURM_LOCALID
 export RANK=\$SLURM_PROCID
 python -m fastchat.train.train_mem \
