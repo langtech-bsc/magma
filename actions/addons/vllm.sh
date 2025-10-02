@@ -8,14 +8,17 @@ export SINGULARITYENV_PATH=/gpfs/apps/MN5/GPP/ONEAPI/2023.2.0/compiler/latest/li
 export OPENAI_USE_HARMONY=0
 
 
-if [[ "$MODEL_NAME" != *"/"* ]]; then
-    dir="data"
-    MODEL_NAME="data/$MODEL_NAME"
-else
-    # Extract the directory part excluding the last segment
-    dir=$(dirname "$MODEL_NAME")
-    # MODEL_NAME remains unchanged in this case
-fi
+#if [[ "$MODEL_NAME" != *"/"* ]]; then
+#    dir="data"
+#    MODEL_NAME="data/$MODEL_NAME"
+#else
+#    # Extract the directory part excluding the last segment
+#    dir=$(dirname "$MODEL_NAME")
+#    # MODEL_NAME remains unchanged in this case
+#fi
+
+dir="data"    
+MODEL_NAME="data/$MODEL_NAME"
 
 if [ "$SLURM_JOB_NUM_NODES" -eq 1 ]; then
     echo "Running on singlenode"
