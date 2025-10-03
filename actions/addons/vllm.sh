@@ -7,18 +7,13 @@ export SINGULARITYENV_PATH=/gpfs/apps/MN5/GPP/ONEAPI/2023.2.0/compiler/latest/li
 #export SINGULARITYENV_PATH=/gpfs/apps/MN5/GPP/ONEAPI/2023.2.0/compiler/latest/linux/bin:/gpfs/apps/MN5/GPP/ONEAPI/2023.2.0/compiler/latest/linux/bin/intel64:/gpfs/apps/MN5/GPP/ONEAPI/2023.2.0/compiler/latest/linux/bin:/gpfs/apps/MN5/GPP/ONEAPI/2023.2.0/compiler/latest/linux/bin/intel64:/apps/ACC/UCX/1.15.0/bin:/gpfs/apps/MN5/GPP/ONEAPI/2023.2.0/mpi/2021.10.0/libfabric/bin:/gpfs/apps/MN5/GPP/ONEAPI/2023.2.0/mpi/2021.10.0/bin:/gpfs/projects/bsc88/text/environments/openai_mn5_python3.9_20253101/bin:/apps/GPP/SINGULARITY/extras:/apps/GPP/SINGULARITY/3.11.5/bin:/apps/GPP/ANACONDA/2023.07/bin:/apps/GPP/ANACONDA/2023.07/condabin:/home/bsc/bsc088851/.local/bin:/home/bsc/bsc088851/bin:/apps/modules/bsc/bin:/home/bsc/bsc099349/.local/bin:/home/bsc/bsc099349/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin
 export OPENAI_USE_HARMONY=0
 
+dir="data"
+if [[ "$MODEL_NAME" != "/"* ]]; then
+    MODEL_NAME="data/$MODEL_NAME"
+fi
 
-#if [[ "$MODEL_NAME" != *"/"* ]]; then
-#    dir="data"
-#    MODEL_NAME="data/$MODEL_NAME"
-#else
-#    # Extract the directory part excluding the last segment
-#    dir=$(dirname "$MODEL_NAME")
-#    # MODEL_NAME remains unchanged in this case
-#fi
-
-dir="data"    
-MODEL_NAME="data/$MODEL_NAME"
+#dir="data"    
+#MODEL_NAME="data/$MODEL_NAME"
 
 if [ "$SLURM_JOB_NUM_NODES" -eq 1 ]; then
     echo "Running on singlenode"
