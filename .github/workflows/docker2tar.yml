@@ -32,6 +32,6 @@ jobs:
         if: always()
         run: | 
           docker builder prune -a -f
-          docker system prune --all --force
+          # docker system prune --all --force # Remove all unused images
         continue-on-error: true
 
