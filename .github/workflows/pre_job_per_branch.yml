@@ -11,6 +11,10 @@ on:
         required: false
         type: boolean
         default: false
+      queue_time_override:
+        required: false
+        type: string
+        default: 'default'
 
     outputs:
       job_name:
@@ -470,6 +474,18 @@ jobs:
         id: slurm
         run: |
           sbatch_params=$(echo '${{ toJson(steps.yaml.outputs) }}' | grep -oP '"slurm_params_[0-9]*": "\K.*"' | sed  's/"$//' | awk '{print $0}' ORS='#' | sed 's/#$//' || true)
+          
+          OVERRIDE="${{ inputs.queue_time_override }}"
+          if [ "$OVERRIDE" = "acc_debug" ]; then
+            sbatch_params=$(echo "$sbatch_params" | sed -E 's/--time=[^#]*//g' | sed -E 's/--qos=[^#]*//g')
+            sbatch_params=$(echo "$sbatch_params" | sed -E 's/#+/#/g' | sed -E 's/^#|#$//g')
+            sbatch_params="$sbatch_params#--time=02:00:00#--qos=acc_debug"
+          elif [ "$OVERRIDE" = "bsc_aii" ]; then
+            sbatch_params=$(echo "$sbatch_params" | sed -E 's/--time=[^#]*//g' | sed -E 's/--qos=[^#]*//g')
+            sbatch_params=$(echo "$sbatch_params" | sed -E 's/#+/#/g' | sed -E 's/^#|#$//g')
+            sbatch_params="$sbatch_params#--time=2-00:00:00#--qos=bsc_aii"
+          fi
+
           echo "sbatch_params=$sbatch_params" >> $GITHUB_OUTPUT
           echo "slurm_command=${{ steps.yaml.outputs.slurm_command }}" >> $GITHUB_OUTPUT
 

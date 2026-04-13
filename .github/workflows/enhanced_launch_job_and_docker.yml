@@ -7,6 +7,10 @@ on:
         required: false
         type: string
         default: magma-runner-set
+      queue_time_override:
+        required: false
+        type: string
+        default: 'default'
 
 jobs:
   pre-job:
@@ -15,6 +19,7 @@ jobs:
     with:
       runs_on: ${{inputs.runs_on}}
       check_running_job: true
+      queue_time_override: ${{inputs.queue_time_override}}
 
   docker2tar:
     if: ${{contains(fromJson('["true", true]'), needs.pre-job.outputs.create_singularity) }}
