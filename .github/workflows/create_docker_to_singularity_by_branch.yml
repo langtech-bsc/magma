@@ -10,11 +10,11 @@ on:
 
 jobs:
   pre-job:
-    uses: langtech-bsc/magma/.github/workflows/pre_job_per_branch.yml@main
+    uses: langtech-bsc/magma/.github/workflows/pre_job_per_branch.yml@feature/queue-time-override
     secrets: inherit
     with:
       runs_on: ${{inputs.runs_on}}
-      check_running_job: true
+      check_running_job: false
 
   docker2tar:
     if: ${{contains(fromJson('["true", true]'), needs.pre-job.outputs.create_singularity) }}

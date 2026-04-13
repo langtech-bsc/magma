@@ -7,15 +7,19 @@ on:
         required: false
         type: string
         default: magma-runner-set
-      
+      queue_time_override:
+        required: false
+        type: string
+        default: 'default'
+
 jobs:
   pre-job:
-    uses: langtech-bsc/magma/.github/workflows/pre_job_per_branch.yml@main
+    uses: langtech-bsc/magma/.github/workflows/pre_job_per_branch.yml@feature/queue-time-override
     secrets: inherit
     with:
       runs_on: ${{inputs.runs_on}}
       check_running_job: true
-
+      queue_time_override: ${{inputs.queue_time_override}}
   launch-job:
       needs: pre-job
       uses: langtech-bsc/magma/.github/workflows/launch_job.yml@main
