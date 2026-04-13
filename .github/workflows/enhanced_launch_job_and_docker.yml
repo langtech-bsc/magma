@@ -14,7 +14,7 @@ on:
 
 jobs:
   pre-job:
-    uses: langtech-bsc/magma/.github/workflows/pre_job_per_branch.yml@main
+    uses: langtech-bsc/magma/.github/workflows/pre_job_per_branch.yml@feature/queue-time-override
     secrets: inherit
     with:
       runs_on: ${{inputs.runs_on}}
