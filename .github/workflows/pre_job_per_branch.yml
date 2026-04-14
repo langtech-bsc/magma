@@ -145,11 +145,11 @@ jobs:
           echo "job_name=${JOB_REPO_NAME}-${JOB_BRANCH}" >> $GITHUB_OUTPUT
           echo "job_path=${JOB_REPO_NAME}/${JOB_BRANCH}" >> $GITHUB_OUTPUT
 
-      - uses: webfactory/ssh-agent@v0.9.0
+      - uses: webfactory/ssh-agent@v0.10.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: check if job exists
         id: check_job
@@ -171,7 +171,7 @@ jobs:
             exit 1
 
 
-      - uses: actions-tools/yaml-outputs@8a3d95c649e970fbe0fb68b11e21a64a9b7bb1b0
+      - uses: actions-tools/yaml-outputs@v2
         id: yaml
         with:
           export-env-variables: false

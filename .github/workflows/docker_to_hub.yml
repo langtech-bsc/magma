@@ -69,7 +69,7 @@ jobs:
       image_ref: ${{ steps.prep.outputs.full_image }}:${{ steps.prep.outputs.tag }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           # For PRs, checkout the head branch
