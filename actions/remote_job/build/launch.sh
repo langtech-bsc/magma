@@ -5,7 +5,7 @@
 #SBATCH --time=00-2:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=20
-#SBATCH --qos=acc_bscls
+#SBATCH --qos=acc_bscaii
 #SBATCH --nodes=1
 
 set -e
