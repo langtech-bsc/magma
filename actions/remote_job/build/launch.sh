@@ -59,17 +59,18 @@ elif  [ "$SANDBOX" = "true" ]; then
     singularity build -F -s $TAR_NAME docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
 else
     echo "Building singularity"
-    # 🆕 Construye primero a sandbox, arregla permisos, luego convierte a SIF
-    singularity build -F -s ${TAR_NAME}_sandbox docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
-    singularity exec --writable ${TAR_NAME}_sandbox /bin/bash -c 'chmod -R o+rX /root'
-    singularity build -F $TAR_NAME ${TAR_NAME}_sandbox
-    rm -rf ${TAR_NAME}_sandbox
+    singularity build -F $TAR_NAME docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
 fi
-
 #else
 #    echo "Building singularity"
-#    singularity build -F $TAR_NAME docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
+#    # 🆕 Construye primero a sandbox, arregla permisos, luego convierte a SIF
+#    singularity build -F -s ${TAR_NAME}_sandbox docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
+#    singularity exec --writable ${TAR_NAME}_sandbox /bin/bash -c 'chmod -R o+rX /root'
+#    singularity build -F $TAR_NAME ${TAR_NAME}_sandbox
+#    rm -rf ${TAR_NAME}_sandbox
 #fi
+
+
 rm -rf $SINGULARITY_CACHEDIR
 mv $TAR_NAME $IMAGES_PATH/$IMAGE
 chmod g+rwx -R $IMAGES_PATH/$IMAGE
