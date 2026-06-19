@@ -8,8 +8,8 @@ jobs:
   test-action-addons:
     runs-on: magma-runner-set
     steps:
-      - uses: actions/checkout@v4
-      - uses: langtech-bsc/magma/actions/addons
+      - uses: actions/checkout@v6
+      - uses: langtech-bsc/magma/actions/addons@main
         with:
             file: "src/launch.sh"
             jupyter: true

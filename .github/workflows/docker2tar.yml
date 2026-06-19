@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 43200
     runs-on: ${{ inputs.runs_on }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Remove docker build cache
         if: always()
         run: | 
