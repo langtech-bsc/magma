@@ -21,6 +21,17 @@ SANDBOX=$REMOTE_JOB_SANDBOX
 TAR_NAME=$(echo $REMOTE_JOB_IMAGE | sed 's/\//_/g')
 LDCONFIG=$REMOTE_JOB_LDCONFIG
 
+# Al construir un SIF sin root, Singularity pone todos los ficheros a nombre de root (-all-root),
+# asi que dentro del contenedor cualquier usuario entra como "otros". Esta funcion da a "otros"
+# lectura, escritura y entrada en directorios, y lectura/escritura (+ejecucion si ya era ejecutable)
+# en ficheros. La escritura solo tiene efecto con --writable-tmpfs: el SIF sigue siendo de solo lectura.
+fix_perms() {
+    echo "Fixing permissions in $1..."
+    find "$1" \
+      \( -type d ! -perm -o=rwx -exec chmod o+rwx {} + \) -o \
+      \( -type f \( ! -perm -o=rw -o \( -perm -u=x ! -perm -o=x \) \) -exec chmod o+rwX {} + \)
+}
+
 module load singularity
 
 echo "IMAGES_PATH: $IMAGES_PATH"
@@ -50,6 +61,7 @@ if [ "$LDCONFIG" = "true" ]; then
     if [ "$SANDBOX" = "true" ]; then
         mv ${TAR_NAME}_sandbox $TAR_NAME
     else
+        fix_perms ${TAR_NAME}_sandbox   # nuevo
         singularity build -F $TAR_NAME ${TAR_NAME}_sandbox
         rm -rf ${TAR_NAME}_sandbox
     fi
@@ -58,22 +70,24 @@ elif  [ "$SANDBOX" = "true" ]; then
     echo "Building sandbox"
     singularity build -F -s $TAR_NAME docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
 else
-    echo "Building singularity"
-    singularity build -F $TAR_NAME docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
+    # --- Version original (sin arreglo de permisos) ---
+    # echo "Building singularity"
+    # singularity build -F $TAR_NAME docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
+    echo "Building singularity (sandbox -> fix_perms -> SIF)"
+    singularity build -F -s ${TAR_NAME}_sandbox docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
+    fix_perms ${TAR_NAME}_sandbox
+    singularity build -F $TAR_NAME ${TAR_NAME}_sandbox
+    rm -rf ${TAR_NAME}_sandbox
 fi
-#else
-#    echo "Building singularity"
-#    # 🆕 Construye primero a sandbox, arregla permisos, luego convierte a SIF
-#    singularity build -F -s ${TAR_NAME}_sandbox docker-archive:$DOCKER_TAR_PATH/$TAR_NAME.tar
-#    singularity exec --writable ${TAR_NAME}_sandbox /bin/bash -c 'chmod -R o+rX /root'
-#    singularity build -F $TAR_NAME ${TAR_NAME}_sandbox
-#    rm -rf ${TAR_NAME}_sandbox
-#fi
 
 
 rm -rf $SINGULARITY_CACHEDIR
 mv $TAR_NAME $IMAGES_PATH/$IMAGE
+# --- Version original ---
+# chmod g+rwx -R $IMAGES_PATH/$IMAGE
+# chown :$SLURM_JOB_ACCOUNT "$IMAGES_PATH/$IMAGE" # It works only for MN5.
 chmod g+rwx -R $IMAGES_PATH/$IMAGE
-chown :$SLURM_JOB_ACCOUNT "$IMAGES_PATH/$IMAGE" # It works only for MN5.
+chmod o-rwx -R $IMAGES_PATH/$IMAGE                  # nadie fuera del grupo
+chown -R :$SLURM_JOB_ACCOUNT "$IMAGES_PATH/$IMAGE"  # It works only for MN5.
 rm $DOCKER_TAR_PATH/$TAR_NAME.tar
 echo "Image build done"
