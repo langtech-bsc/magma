@@ -32,7 +32,7 @@ fix_perms() {
       \( -type f \( ! -perm -o=rw -o \( -perm -u=x ! -perm -o=x \) \) -exec chmod o+rwX {} + \)
 }
 
-module load singularity
+module load singularity/4.1.5
 
 echo "IMAGES_PATH: $IMAGES_PATH"
 echo "IMAGE: $IMAGE"
