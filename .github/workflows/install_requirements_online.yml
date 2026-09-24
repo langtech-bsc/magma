@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 43200
     runs-on: ${{ inputs.runs_on }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: langtech-bsc/magma/actions/remote_job@main
         with:
           job: 'install-online'
