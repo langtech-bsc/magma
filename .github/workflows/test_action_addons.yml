@@ -8,7 +8,7 @@ jobs:
   test-action-addons:
     runs-on: magma-runner-set
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: langtech-bsc/magma/actions/addons
         with:
             file: "src/launch.sh"
